@@ -41,4 +41,24 @@ describe("Redis", () => {
     const { publishModeration } = await import("@/lib/redis");
     expect(typeof publishModeration).toBe("function");
   });
+
+  it("should export publishSlideshowCommand function", async () => {
+    const { publishSlideshowCommand } = await import("@/lib/redis");
+    expect(typeof publishSlideshowCommand).toBe("function");
+  });
+
+  it("should build a slideshow channel from an event id", async () => {
+    const { slideshowChannel } = await import("@/lib/redis");
+    expect(slideshowChannel("evt-1")).toBe("event:evt-1:slideshow");
+  });
+
+  it("should publish a slideshow command to the slideshow channel", async () => {
+    const { redis, publishSlideshowCommand, slideshowChannel } = await import("@/lib/redis");
+    const publishSpy = vi.mocked(redis.publish);
+    await publishSlideshowCommand("evt-1", { type: "pause" });
+    expect(publishSpy).toHaveBeenCalledWith(
+      "event:evt-1:slideshow",
+      JSON.stringify({ type: "slideshow:command", data: { type: "pause" } })
+    );
+  });
 });

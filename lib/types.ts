@@ -38,12 +38,35 @@ export interface Event {
   createdAt: Date;
 }
 
+export type SlideshowTransition = "fade" | "slide" | "zoom";
+
+export type SlideshowCommandType = "pause" | "resume" | "skip" | "stop" | "config";
+
+export interface SlideshowConfig {
+  intervalSec: number;
+  transition: SlideshowTransition;
+  showMessages: boolean;
+}
+
+export interface SlideshowCommand {
+  type: SlideshowCommandType;
+  issuedBy?: string;
+  config?: SlideshowConfig;
+}
+
+export const DEFAULT_SLIDESHOW_CONFIG: SlideshowConfig = {
+  intervalSec: 5,
+  transition: "fade",
+  showMessages: true,
+};
+
 export interface EventSettings {
   moderationEnabled?: boolean;
   maxPhotosPerGuest?: number | null;
   slideshowInterval?: number;
-  slideshowTransition?: "fade" | "slide" | "zoom";
+  slideshowTransition?: SlideshowTransition;
   autoApprove?: boolean;
+  slideshow?: SlideshowConfig;
 }
 
 export interface EventBranding {

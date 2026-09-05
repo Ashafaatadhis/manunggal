@@ -151,3 +151,14 @@ describe("Types", () => {
     expect(metadata.format).toBe("jpg");
   });
 });
+
+describe("Slideshow types", () => {
+  it("should have a default slideshow config", async () => {
+    const { DEFAULT_SLIDESHOW_CONFIG } = await import("@/lib/types");
+    expect(DEFAULT_SLIDESHOW_CONFIG).toEqual({
+      intervalSec: 5,
+      transition: "fade",
+      showMessages: true,
+    });
+  });
+});

@@ -42,3 +42,15 @@ export const uploadPhotoSchema = z.object({
     })
     .optional(),
 });
+
+export const slideshowConfigSchema = z.object({
+  intervalSec: z.number().int().min(3).max(10),
+  transition: z.enum(["fade", "slide", "zoom"]),
+  showMessages: z.boolean(),
+});
+
+export const slideshowCommandSchema = z.object({
+  type: z.enum(["pause", "resume", "skip", "stop", "config"]),
+  issuedBy: z.string().optional(),
+  config: slideshowConfigSchema.optional(),
+});

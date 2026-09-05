@@ -1,4 +1,5 @@
 import Redis from "ioredis";
+import type { SlideshowCommand } from "./types";
 
 const globalForRedis = globalThis as unknown as {
   redis: Redis | undefined;
@@ -38,6 +39,23 @@ export async function publishModeration(
     JSON.stringify({
       type: `photo:${action}`,
       data: { photoId },
+    })
+  );
+}
+
+export function slideshowChannel(eventId: string): string {
+  return `event:${eventId}:slideshow`;
+}
+
+export async function publishSlideshowCommand(
+  eventId: string,
+  command: SlideshowCommand
+): Promise<void> {
+  await redis.publish(
+    slideshowChannel(eventId),
+    JSON.stringify({
+      type: "slideshow:command",
+      data: command,
     })
   );
 }

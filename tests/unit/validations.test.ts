@@ -4,6 +4,7 @@ import {
   loginSchema,
   createEventSchema,
   uploadPhotoSchema,
+  slideshowConfigSchema,
 } from "@/lib/validations";
 
 describe("registerSchema", () => {
@@ -125,6 +126,33 @@ describe("uploadPhotoSchema", () => {
       fileUrl: "https://example.com/photo.jpg",
       thumbnailUrl: "https://example.com/thumb.jpg",
       message: "a".repeat(501),
+    });
+    expect(result.success).toBe(false);
+  });
+});
+
+describe("Slideshow validation", () => {
+  it("should accept a valid config", () => {
+    const result = slideshowConfigSchema.safeParse({
+      intervalSec: 7,
+      transition: "zoom",
+      showMessages: false,
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("should reject interval below 3", () => {
+    const result = slideshowConfigSchema.safeParse({
+      intervalSec: 2,
+      transition: "fade",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("should reject interval above 10", () => {
+    const result = slideshowConfigSchema.safeParse({
+      intervalSec: 11,
+      transition: "fade",
     });
     expect(result.success).toBe(false);
   });
