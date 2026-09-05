@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import PhotoCard from "@/components/dashboard/PhotoCard";
+import SlideshowPanel from "@/components/dashboard/SlideshowPanel";
 import type { Event, Photo, ApiResponse } from "@/lib/types";
 
 interface EventWithPhotos extends Event {
@@ -151,6 +152,18 @@ export default function EventDetailPage() {
               Copy Link
             </Button>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Slideshow Panel */}
+      <Card>
+        <CardContent className="pt-6">
+          <SlideshowPanel
+            eventId={event.id}
+            slug={event.slug}
+            intervalSec={event.settings?.slideshow?.intervalSec ?? 5}
+            transition={event.settings?.slideshow?.transition ?? "fade"}
+          />
         </CardContent>
       </Card>
 
