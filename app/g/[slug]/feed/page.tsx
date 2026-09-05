@@ -1,14 +1,16 @@
 import { db } from "@/lib/db";
 import LiveFeed from "@/components/guest/LiveFeed";
-import type { Photo } from "@/lib/types";
+import { toPhoto } from "@/lib/mappers";
 
 export default async function FeedPage({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
+  const { slug } = await params;
+
   const event = await db.event.findUnique({
-    where: { slug: params.slug },
+    where: { slug },
     select: { id: true, title: true },
   });
 
@@ -20,7 +22,7 @@ export default async function FeedPage({
     );
   }
 
-  const photos: Photo[] = await db.photo.findMany({
+  const rows = await db.photo.findMany({
     where: {
       eventId: event.id,
       status: "approved",
@@ -29,5 +31,7 @@ export default async function FeedPage({
     take: 100,
   });
 
-  return <LiveFeed eventId={event.id} initialPhotos={photos} />;
+  const photos = rows.map(toPhoto);
+
+  return <LiveFeed slug={slug} initialPhotos={photos} />;
 }

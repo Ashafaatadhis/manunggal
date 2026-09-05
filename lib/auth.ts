@@ -19,7 +19,7 @@ export async function signToken(payload: JWTPayload): Promise<string> {
     .setExpirationTime("7d")
     .sign(JWT_SECRET);
 
-  logger.debug("Token signed", { userId: payload.userId });
+  logger.debug({ userId: payload.userId }, "Token signed");
   return token;
 }
 

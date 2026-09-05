@@ -23,7 +23,7 @@ export function generateUploadSignature(eventId: string) {
       process.env.CLOUDINARY_API_SECRET!
     );
 
-    logger.debug("Upload signature generated", { eventId, folder });
+    logger.debug({ eventId, folder }, "Upload signature generated");
 
     return {
       timestamp,
@@ -33,7 +33,7 @@ export function generateUploadSignature(eventId: string) {
       folder,
     };
   } catch (error) {
-    logger.error("Failed to generate upload signature", { eventId }, error as Error);
+    logger.error({ eventId, err: error }, "Failed to generate upload signature");
     throw error;
   }
 }
@@ -41,10 +41,10 @@ export function generateUploadSignature(eventId: string) {
 export async function deleteImage(publicId: string) {
   try {
     const result = await cloudinary.uploader.destroy(publicId);
-    logger.info("Image deleted", { publicId, result });
+    logger.info({ publicId, result }, "Image deleted");
     return result;
   } catch (error) {
-    logger.error("Failed to delete image", { publicId }, error as Error);
+    logger.error({ publicId, err: error }, "Failed to delete image");
     throw error;
   }
 }

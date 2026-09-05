@@ -10,7 +10,7 @@ export default function UploadPage() {
 
   return (
     <GalleryUpload
-      eventId={slug}
+      slug={slug}
       onSuccess={() => router.push(`/g/${slug}/feed`)}
     />
   );

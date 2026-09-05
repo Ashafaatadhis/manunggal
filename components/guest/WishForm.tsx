@@ -6,18 +6,18 @@ import type { ApiResponse, Photo } from "@/lib/types";
 
 interface WishFormProps {
   photo: string;
-  eventId: string;
+  slug: string;
   onBack: () => void;
   onSuccess: () => void;
 }
 
-export default function WishForm({ photo, eventId, onBack, onSuccess }: WishFormProps) {
+export default function WishForm({ photo, slug, onBack, onSuccess }: WishFormProps) {
   const [message, setMessage] = useState("");
 
   const uploadMutation = useMutation({
     mutationFn: async () => {
       // 1. Get upload signature
-      const sigRes = await fetch(`/api/events/${eventId}/upload-signature`);
+      const sigRes = await fetch(`/api/g/${slug}/upload-signature`);
       const sigData: ApiResponse<{ timestamp: number; signature: string; apiKey: string; cloudName: string; folder: string }> = await sigRes.json();
 
       if (!sigData.success || !sigData.data) {
@@ -49,7 +49,7 @@ export default function WishForm({ photo, eventId, onBack, onSuccess }: WishForm
       // 4. Save metadata to database
       const guestName = localStorage.getItem("guestName") || "Anonymous";
 
-      const saveRes = await fetch(`/api/events/${eventId}/photos`, {
+      const saveRes = await fetch(`/api/g/${slug}/photos`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

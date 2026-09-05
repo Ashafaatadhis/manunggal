@@ -18,12 +18,15 @@ export function handleApiError(
   context?: Record<string, unknown>
 ): NextResponse {
   if (error instanceof AppError) {
-    logger.warn(error.message, {
-      code: error.code,
-      statusCode: error.statusCode,
-      ...context,
-      ...error.context,
-    });
+    logger.warn(
+      {
+        code: error.code,
+        statusCode: error.statusCode,
+        ...context,
+        ...error.context,
+      },
+      error.message
+    );
 
     return NextResponse.json(
       {
@@ -34,7 +37,7 @@ export function handleApiError(
     );
   }
 
-  logger.error("Unexpected error", context, error as Error);
+  logger.error({ ...context, err: error }, "Unexpected error");
 
   return NextResponse.json(
     {

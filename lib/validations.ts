@@ -33,5 +33,12 @@ export const uploadPhotoSchema = z.object({
   thumbnailUrl: z.string().url(),
   guestName: z.string().max(255).optional(),
   message: z.string().max(500).optional(),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z
+    .object({
+      width: z.number().optional(),
+      height: z.number().optional(),
+      format: z.string().optional(),
+      sizeBytes: z.number().optional(),
+    })
+    .optional(),
 });

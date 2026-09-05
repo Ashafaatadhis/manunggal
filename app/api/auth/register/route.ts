@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const data = registerSchema.parse(body);
 
-    authLogger.registerAttempt(data.email);
+    authLogger.info({ email: data.email }, "Register attempt");
 
     const existingUser = await db.user.findUnique({
       where: { email: data.email },
@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
       role: user.role,
     });
 
-    authLogger.registerSuccess(user.id);
+    authLogger.info({ userId: user.id }, "Register success");
 
     const response = successResponse({
       id: user.id,

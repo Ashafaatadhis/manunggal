@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import type { Event, ApiResponse } from "@/lib/types";
 
 async function fetchEvent(slug: string): Promise<Event> {
-  const res = await fetch(`/api/events/${slug}`);
+  const res = await fetch(`/api/g/${slug}`);
   const data: ApiResponse<Event> = await res.json();
 
   if (!data.success || !data.data) {

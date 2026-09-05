@@ -6,13 +6,13 @@ import PhotoCard from "./PhotoCard";
 import type { Photo } from "@/lib/types";
 
 interface LiveFeedProps {
-  eventId: string;
+  slug: string;
   initialPhotos: Photo[];
 }
 
-export default function LiveFeed({ eventId, initialPhotos }: LiveFeedProps) {
+export default function LiveFeed({ slug, initialPhotos }: LiveFeedProps) {
   const [photos, setPhotos] = useState<Photo[]>(initialPhotos);
-  const { events, connected } = useSSE(eventId);
+  const { events, connected } = useSSE(slug);
 
   // Process SSE events
   useEffect(() => {

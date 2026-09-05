@@ -6,11 +6,12 @@ import { uploadLogger } from "@/lib/logger";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
+    const { slug } = await params;
     const event = await db.event.findUnique({
-      where: { id: params.id },
+      where: { slug },
       select: { id: true, status: true },
     });
 
@@ -23,11 +24,11 @@ export async function GET(
     }
 
     const signature = generateUploadSignature(event.id);
-    uploadLogger.signatureGenerated(event.id);
+    uploadLogger.info({ eventId: event.id }, "Upload signature generated");
 
     return successResponse(signature);
   } catch (error) {
-    uploadLogger.signatureFailed(params.id, error as Error);
-    return handleApiError(error, { route: "upload-signature", eventId: params.id });
+    uploadLogger.error({ err: error }, "Upload signature failed");
+    return handleApiError(error, { route: "g/upload-signature" });
   }
 }

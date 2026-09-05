@@ -4,11 +4,12 @@ import { successResponse, handleApiError, Errors } from "@/lib/errors";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
+  const { slug } = await params;
   try {
     const event = await db.event.findUnique({
-      where: { slug: params.slug },
+      where: { slug },
       select: {
         id: true,
         title: true,
@@ -33,6 +34,6 @@ export async function GET(
 
     return successResponse(event);
   } catch (error) {
-    return handleApiError(error, { route: "events/[slug]", slug: params.slug });
+    return handleApiError(error, { route: "g/[slug]", slug });
   }
 }

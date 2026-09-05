@@ -4,15 +4,15 @@ import { uploadPhotoSchema } from "@/lib/validations";
 import { publishPhoto } from "@/lib/redis";
 import { successResponse, handleApiError, Errors } from "@/lib/errors";
 import { photoLogger } from "@/lib/logger";
-import type { Photo, ApiResponse } from "@/lib/types";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { eventId: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
+    const { slug } = await params;
     const event = await db.event.findUnique({
-      where: { id: params.eventId },
+      where: { slug },
       select: { id: true, status: true, settings: true },
     });
 
@@ -23,7 +23,7 @@ export async function GET(
     const isGuest = !req.cookies.get("token")?.value;
 
     const where = {
-      eventId: params.eventId,
+      eventId: event.id,
       ...(isGuest ? { status: "approved" as const } : { status: { not: "deleted" as const } }),
     };
 
@@ -35,17 +35,18 @@ export async function GET(
 
     return successResponse(photos);
   } catch (error) {
-    return handleApiError(error, { route: "photos/list", eventId: params.eventId });
+    return handleApiError(error, { route: "g/photos/list" });
   }
 }
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { eventId: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
+    const { slug } = await params;
     const event = await db.event.findUnique({
-      where: { id: params.eventId },
+      where: { slug },
       select: { id: true, status: true, settings: true },
     });
 
@@ -65,7 +66,7 @@ export async function POST(
 
     const photo = await db.photo.create({
       data: {
-        eventId: params.eventId,
+        eventId: event.id,
         fileKey: data.fileKey,
         fileUrl: data.fileUrl,
         fileProvider: data.fileProvider,
@@ -74,19 +75,22 @@ export async function POST(
         guestIp: req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "unknown",
         message: data.message,
         status: autoApprove ? "approved" : "pending",
-        metadata: data.metadata || {},
+        metadata: data.metadata ?? {},
       },
     });
 
-    photoLogger.uploaded(photo.id, params.eventId, data.guestName);
+    photoLogger.info(
+      { photoId: photo.id, eventId: event.id, guestName: data.guestName },
+      "Photo uploaded"
+    );
 
     if (autoApprove) {
-      await publishPhoto(params.eventId, photo);
+      await publishPhoto(event.id, photo);
     }
 
     return successResponse(photo, 201);
   } catch (error) {
-    photoLogger.uploadFailed(params.eventId, error as Error);
-    return handleApiError(error, { route: "photos/upload", eventId: params.eventId });
+    photoLogger.error({ err: error }, "Photo upload failed");
+    return handleApiError(error, { route: "g/photos/upload" });
   }
 }

@@ -5,11 +5,11 @@ import { useMutation } from "@tanstack/react-query";
 import type { ApiResponse, Photo } from "@/lib/types";
 
 interface GalleryUploadProps {
-  eventId: string;
+  slug: string;
   onSuccess: () => void;
 }
 
-export default function GalleryUpload({ eventId, onSuccess }: GalleryUploadProps) {
+export default function GalleryUpload({ slug, onSuccess }: GalleryUploadProps) {
   const [files, setFiles] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
   const [message, setMessage] = useState("");
@@ -21,7 +21,7 @@ export default function GalleryUpload({ eventId, onSuccess }: GalleryUploadProps
       if (files.length === 0) return;
 
       // Get upload signature
-      const sigRes = await fetch(`/api/events/${eventId}/upload-signature`);
+      const sigRes = await fetch(`/api/g/${slug}/upload-signature`);
       const sigData: ApiResponse<{ timestamp: number; signature: string; apiKey: string; cloudName: string; folder: string }> = await sigRes.json();
       if (!sigData.success || !sigData.data) throw new Error("Failed to get signature");
 
@@ -47,7 +47,7 @@ export default function GalleryUpload({ eventId, onSuccess }: GalleryUploadProps
         const uploadData = await uploadRes.json();
 
         // Save metadata
-        await fetch(`/api/events/${eventId}/photos`, {
+        await fetch(`/api/g/${slug}/photos`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({

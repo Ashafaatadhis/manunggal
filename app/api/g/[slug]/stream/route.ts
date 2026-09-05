@@ -1,10 +1,22 @@
 import { NextRequest } from "next/server";
+import { db } from "@/lib/db";
 import { redis } from "@/lib/redis";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { eventId: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
+  const { slug } = await params;
+  const event = await db.event.findUnique({
+    where: { slug },
+    select: { id: true },
+  });
+
+  if (!event) {
+    return new Response("Event not found", { status: 404 });
+  }
+
+  const eventId = event.id;
   const encoder = new TextEncoder();
 
   const stream = new ReadableStream({
@@ -16,7 +28,7 @@ export async function GET(
 
       // Subscribe to Redis channel
       const subscriber = redis.duplicate();
-      subscriber.subscribe(`event:${params.eventId}:photos`);
+      subscriber.subscribe(`event:${eventId}:photos`);
 
       subscriber.on("message", (channel, message) => {
         try {

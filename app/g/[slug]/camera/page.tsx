@@ -24,7 +24,7 @@ export default function CameraPage() {
     return (
       <WishForm
         photo={capturedPhoto}
-        eventId={slug}
+        slug={slug}
         onBack={() => setCapturedPhoto(null)}
         onSuccess={() => router.push(`/g/${slug}/feed`)}
       />

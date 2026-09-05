@@ -12,13 +12,14 @@ const moderationSchema = z.object({
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const session = await requireAuth();
 
     const photo = await db.photo.findUnique({
-      where: { id: params.id },
+      where: { id },
       select: { id: true, eventId: true, status: true },
     });
 
@@ -30,18 +31,21 @@ export async function PATCH(
     const data = moderationSchema.parse(body);
 
     const updatedPhoto = await db.photo.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         status: data.status,
         moderatedAt: new Date(),
       },
     });
 
-    photoLogger.moderationAction(photo.id, data.status, session.userId);
+    photoLogger.info(
+      { photoId: photo.id, status: data.status, userId: session.userId },
+      "Photo moderation action"
+    );
     await publishModeration(photo.eventId, photo.id, data.status);
 
     return successResponse(updatedPhoto);
   } catch (error) {
-    return handleApiError(error, { route: "photos/moderation", photoId: params.id });
+    return handleApiError(error, { route: "photos/moderation", photoId: id });
   }
 }

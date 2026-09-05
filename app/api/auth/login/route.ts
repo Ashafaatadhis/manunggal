@@ -11,21 +11,21 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const data = loginSchema.parse(body);
 
-    authLogger.loginAttempt(data.email);
+    authLogger.info({ email: data.email }, "Login attempt");
 
     const user = await db.user.findUnique({
       where: { email: data.email },
     });
 
     if (!user) {
-      authLogger.loginFailed(data.email, "user_not_found");
+      authLogger.warn({ email: data.email, reason: "user_not_found" }, "Login failed");
       return Errors.VALIDATION("Email atau password salah") as any;
     }
 
     const isValidPassword = await compare(data.password, user.password);
 
     if (!isValidPassword) {
-      authLogger.loginFailed(data.email, "invalid_password");
+      authLogger.warn({ email: data.email, reason: "invalid_password" }, "Login failed");
       return Errors.VALIDATION("Email atau password salah") as any;
     }
 
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
       role: user.role,
     });
 
-    authLogger.loginSuccess(user.id);
+    authLogger.info({ userId: user.id }, "Login success");
 
     const response = successResponse({
       id: user.id,

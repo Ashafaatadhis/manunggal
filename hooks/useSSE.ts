@@ -12,7 +12,7 @@ interface UseSSEReturn {
   connected: boolean;
 }
 
-export function useSSE(eventId: string): UseSSEReturn {
+export function useSSE(slug: string): UseSSEReturn {
   const [events, setEvents] = useState<SSEEvent[]>([]);
   const [connected, setConnected] = useState(false);
   const eventSourceRef = useRef<EventSource | null>(null);
@@ -22,7 +22,7 @@ export function useSSE(eventId: string): UseSSEReturn {
   }, []);
 
   useEffect(() => {
-    const eventSource = new EventSource(`/api/events/${eventId}/stream`);
+    const eventSource = new EventSource(`/api/g/${slug}/stream`);
     eventSourceRef.current = eventSource;
 
     eventSource.onmessage = (event) => {
@@ -45,7 +45,7 @@ export function useSSE(eventId: string): UseSSEReturn {
     return () => {
       eventSource.close();
     };
-  }, [eventId, addEvent]);
+  }, [slug, addEvent]);
 
   return { events, connected };
 }
