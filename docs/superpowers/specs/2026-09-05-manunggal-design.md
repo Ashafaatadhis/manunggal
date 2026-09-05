@@ -475,14 +475,20 @@ Semantic:
 - Bulk download (ZIP export)
 - Event settings (moderation toggle, max photos)
 
-### Phase 3: Live Slideshow (Week 5)
+### Phase 3: Live Slideshow (Week 5) - COMPLETE
 
-- Slideshow page (/live/{slug})
-- Auto-rotate photos
-- Transitions (fade, slide, zoom)
-- Configurable interval
-- Admin controls (pause, skip, stop)
-- Real-time photo push
+- [x] Slideshow page (/live/{slug})
+- [x] Auto-rotate photos
+- [x] Transitions (fade, slide, zoom)
+- [x] Configurable interval
+- [x] Admin controls (pause, skip, stop) - local overlay + remote from host dashboard
+- [x] Real-time photo push (SSE over existing Redis photo channel + new slideshow control channel)
+
+Shipped: fullscreen `/live/{slug}` page with a client slideshow engine (`hooks/useSlideshow`),
+approved-photo streaming over SSE, config persisted in `event.settings.slideshow`
+(`/api/events/[eventId]/slideshow/control`), control-stream SSE (`/api/live/[slug]/control-stream`),
+and a host `SlideshowPanel` on the event detail page. Config and command payloads are typed in
+`lib/types.ts`; config resolution lives in `lib/slideshow.ts`.
 
 ### Phase 4: QR Signage and Polish (Week 5-6)
 
