@@ -1,0 +1,174 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  host
+  vendor
+  admin
+}
+
+enum EventStatus {
+  draft
+  active
+  live
+  ended
+}
+
+enum EventType {
+  wedding
+  birthday
+  graduation
+  corporate
+  other
+}
+
+enum PhotoStatus {
+  pending
+  approved
+  hidden
+  deleted
+}
+
+enum OrderStatus {
+  pending
+  paid
+  expired
+  cancelled
+}
+
+enum PackageType {
+  free
+  pro_event
+  vendor_monthly
+  vendor_yearly
+}
+
+enum VendorSubscription {
+  free
+  pro
+  enterprise
+}
+
+enum FileProvider {
+  cloudinary
+  s3
+  r2
+  local
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String
+  password  String
+  role      UserRole @default(host)
+  phone     String?
+  avatarUrl String?  @map("avatar_url")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  events Event[]
+  orders Order[]
+
+  vendor Vendor?
+
+  @@map("users")
+}
+
+model Vendor {
+  id           String             @id @default(uuid())
+  userId       String             @unique @map("user_id")
+  companyName  String             @map("company_name")
+  logoUrl      String?            @map("logo_url")
+  description  String?
+  branding     Json               @default("{}")
+  subscription VendorSubscription @default(free)
+  maxEvents    Int?               @map("max_events")
+  createdAt    DateTime           @default(now()) @map("created_at")
+  updatedAt    DateTime           @updatedAt @map("updated_at")
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  events Event[]
+
+  @@map("vendors")
+}
+
+model Event {
+  id          String      @id @default(uuid())
+  hostId      String      @map("host_id")
+  vendorId    String?     @map("vendor_id")
+  title       String
+  slug        String      @unique
+  eventType   EventType   @map("event_type")
+  description String?
+  date        DateTime    @db.Date
+  startTime   DateTime    @map("start_time")
+  endTime     DateTime    @map("end_time")
+  venue       String?
+  status      EventStatus @default(draft)
+  settings    Json        @default("{}")
+  branding    Json        @default("{}")
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+
+  host   User     @relation(fields: [hostId], references: [id], onDelete: Cascade)
+  vendor Vendor?  @relation(fields: [vendorId], references: [id], onDelete: SetNull)
+  photos Photo[]
+  orders Order[]
+
+  @@index([hostId])
+  @@index([slug])
+  @@index([status])
+  @@index([date])
+  @@map("events")
+}
+
+model Photo {
+  id           String       @id @default(uuid())
+  eventId      String       @map("event_id")
+  fileKey      String       @map("file_key")
+  fileUrl      String       @map("file_url")
+  fileProvider FileProvider @default(cloudinary) @map("file_provider")
+  thumbnailUrl String       @map("thumbnail_url")
+  guestName    String?      @map("guest_name")
+  guestIp      String?      @map("guest_ip")
+  message      String?
+  status       PhotoStatus  @default(pending)
+  metadata     Json         @default("{}")
+  uploadedAt   DateTime     @default(now()) @map("uploaded_at")
+  moderatedAt  DateTime?    @map("moderated_at")
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
+  @@index([status])
+  @@index([uploadedAt])
+  @@map("photos")
+}
+
+model Order {
+  id              String      @id @default(uuid())
+  eventId         String      @map("event_id")
+  userId          String      @map("user_id")
+  amount          Int
+  package         PackageType
+  status          OrderStatus @default(pending)
+  paymentMethod   String?     @map("payment_method")
+  paymentProofUrl String?     @map("payment_proof_url")
+  paidAt          DateTime?   @map("paid_at")
+  expiresAt       DateTime?   @map("expires_at")
+  createdAt       DateTime    @default(now()) @map("created_at")
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
+  @@index([userId])
+  @@map("orders")
+}
