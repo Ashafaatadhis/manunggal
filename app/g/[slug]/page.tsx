@@ -1,40 +1,19 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import NameInput from "@/components/guest/NameInput";
-import type { Event, ApiResponse } from "@/lib/types";
+import { useEvent } from "@/hooks/useEvent";
 
 export default function GuestLandingPage() {
   const params = useParams();
   const router = useRouter();
   const slug = params.slug as string;
 
-  const [event, setEvent] = useState<Event | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data: event, isLoading, error } = useEvent(slug);
   const [guestName, setGuestName] = useState<string | null>(null);
 
-  useEffect(() => {
-    async function fetchEvent() {
-      try {
-        const res = await fetch(`/api/events/${slug}`);
-        const data: ApiResponse<Event> = await res.json();
-        if (data.success && data.data) {
-          setEvent(data.data);
-        } else {
-          setError(data.error?.message || "Gagal memuat acara");
-        }
-      } catch {
-        setError("Gagal memuat acara");
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchEvent();
-  }, [slug]);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-cream-100 flex items-center justify-center">
         <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
@@ -47,7 +26,9 @@ export default function GuestLandingPage() {
       <div className="min-h-screen bg-cream-100 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-foreground mb-2">Oops!</h1>
-          <p className="text-muted-foreground">{error || "Event tidak ditemukan"}</p>
+          <p className="text-muted-foreground">
+            {error?.message || "Event tidak ditemukan"}
+          </p>
         </div>
       </div>
     );
