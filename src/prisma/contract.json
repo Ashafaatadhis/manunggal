@@ -1260,6 +1260,15 @@
                 },
                 {
                   "columns": [
+                    "host_id",
+                    "status"
+                  ],
+                  "name": "events_host_id_status_idx_15e7ab0e",
+                  "prefix": "events_host_id_status_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
                     "slug"
                   ],
                   "name": "events_slug_idx_73b7f5ce",
@@ -1890,7 +1899,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "1edf489d21e7f83401a28f9e804c6a68f6a9f4f06b8d763cf9bf121d1200b1ec"
+    "storageHash": "a107ef2c2f525387ec0e2be52ef2f41925680073fe1d35a78851d0001700d51a"
   },
   "execution": {
     "executionHash": "57b5ff2f9c2ca00e4e0e3d9670ff6c3b5fc5f277df7311b713cdb793a534cf99",

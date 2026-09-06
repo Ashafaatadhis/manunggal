@@ -1,0 +1,1021 @@
+[
+  {
+    "id": "schema.public",
+    "label": "Create schema \"public\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres"
+    },
+    "precheck": [],
+    "execute": [
+      {
+        "description": "Create schema \"public\"",
+        "sql": "CREATE SCHEMA IF NOT EXISTS \"public\"",
+        "params": []
+      }
+    ],
+    "postcheck": []
+  },
+  {
+    "id": "table.events",
+    "label": "Create table \"events\"",
+    "summary": "Creates table \"events\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "events"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"events\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"events\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"events\"",
+        "sql": "CREATE TABLE \"public\".\"events\" (\n  \"branding\" json DEFAULT '\"{}\"'::json NOT NULL,\n  \"created_at\" timestamptz DEFAULT (now()) NOT NULL,\n  \"date\" timestamptz NOT NULL,\n  \"description\" text,\n  \"end_time\" timestamptz NOT NULL,\n  \"event_type\" text NOT NULL,\n  \"host_id\" text NOT NULL,\n  \"id\" text NOT NULL,\n  \"settings\" json DEFAULT '\"{}\"'::json NOT NULL,\n  \"slug\" text NOT NULL,\n  \"start_time\" timestamptz NOT NULL,\n  \"status\" text DEFAULT 'draft' NOT NULL,\n  \"title\" text NOT NULL,\n  \"updated_at\" timestamptz NOT NULL,\n  \"vendor_id\" text,\n  \"venue\" text,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"events_event_type_check_a563f647\" CHECK (\"event_type\" IN ('wedding', 'birthday', 'graduation', 'corporate', 'other')),\n  CONSTRAINT \"events_status_check_884c687f\" CHECK (\"status\" IN ('draft', 'active', 'live', 'ended'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"events\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"events\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.orders",
+    "label": "Create table \"orders\"",
+    "summary": "Creates table \"orders\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "orders"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"orders\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"orders\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"orders\"",
+        "sql": "CREATE TABLE \"public\".\"orders\" (\n  \"amount\" int4 NOT NULL,\n  \"created_at\" timestamptz DEFAULT (now()) NOT NULL,\n  \"event_id\" text NOT NULL,\n  \"expires_at\" timestamptz,\n  \"id\" text NOT NULL,\n  \"package\" text NOT NULL,\n  \"paid_at\" timestamptz,\n  \"payment_method\" text,\n  \"payment_proof_url\" text,\n  \"status\" text DEFAULT 'pending' NOT NULL,\n  \"user_id\" text NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"orders_package_check_f29067ad\" CHECK (\"package\" IN ('free', 'pro_event', 'vendor_monthly', 'vendor_yearly')),\n  CONSTRAINT \"orders_status_check_a61c8066\" CHECK (\"status\" IN ('pending', 'paid', 'expired', 'cancelled'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"orders\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"orders\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.photos",
+    "label": "Create table \"photos\"",
+    "summary": "Creates table \"photos\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "photos"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"photos\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"photos\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"photos\"",
+        "sql": "CREATE TABLE \"public\".\"photos\" (\n  \"event_id\" text NOT NULL,\n  \"file_key\" text NOT NULL,\n  \"file_provider\" text DEFAULT 'cloudinary' NOT NULL,\n  \"file_url\" text NOT NULL,\n  \"guest_ip\" text,\n  \"guest_name\" text,\n  \"id\" text NOT NULL,\n  \"message\" text,\n  \"metadata\" json DEFAULT '\"{}\"'::json NOT NULL,\n  \"moderated_at\" timestamptz,\n  \"status\" text DEFAULT 'pending' NOT NULL,\n  \"thumbnail_url\" text NOT NULL,\n  \"uploaded_at\" timestamptz DEFAULT (now()) NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"photos_file_provider_check_0e83ed00\" CHECK (\"file_provider\" IN ('cloudinary', 's3', 'r2', 'local')),\n  CONSTRAINT \"photos_status_check_7255d6b7\" CHECK (\"status\" IN ('pending', 'approved', 'hidden', 'deleted'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"photos\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"photos\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.users",
+    "label": "Create table \"users\"",
+    "summary": "Creates table \"users\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "users"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"users\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"users\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"users\"",
+        "sql": "CREATE TABLE \"public\".\"users\" (\n  \"avatar_url\" text,\n  \"created_at\" timestamptz DEFAULT (now()) NOT NULL,\n  \"email\" text NOT NULL,\n  \"id\" text NOT NULL,\n  \"name\" text NOT NULL,\n  \"password\" text NOT NULL,\n  \"phone\" text,\n  \"role\" text DEFAULT 'host' NOT NULL,\n  \"updated_at\" timestamptz NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"users_role_check_89e88393\" CHECK (\"role\" IN ('host', 'vendor', 'admin'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"users\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"users\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.vendors",
+    "label": "Create table \"vendors\"",
+    "summary": "Creates table \"vendors\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "vendors"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"vendors\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"vendors\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"vendors\"",
+        "sql": "CREATE TABLE \"public\".\"vendors\" (\n  \"branding\" json DEFAULT '\"{}\"'::json NOT NULL,\n  \"company_name\" text NOT NULL,\n  \"created_at\" timestamptz DEFAULT (now()) NOT NULL,\n  \"description\" text,\n  \"id\" text NOT NULL,\n  \"logo_url\" text,\n  \"max_events\" int4,\n  \"subscription\" text DEFAULT 'free' NOT NULL,\n  \"updated_at\" timestamptz NOT NULL,\n  \"user_id\" text NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"vendors_subscription_check_6309e542\" CHECK (\"subscription\" IN ('free', 'pro', 'enterprise'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"vendors\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"vendors\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.events.events_slug_key",
+    "label": "Add unique constraint on \"events\" (slug)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "events_slug_key",
+        "table": "events"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"events_slug_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "events_slug_key",
+          "public",
+          "\"public\".\"events\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"events_slug_key\"",
+        "sql": "ALTER TABLE \"public\".\"events\" ADD CONSTRAINT \"events_slug_key\" UNIQUE (\"slug\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"events_slug_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "events_slug_key",
+          "public",
+          "\"public\".\"events\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.users.users_email_key",
+    "label": "Add unique constraint on \"users\" (email)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "users_email_key",
+        "table": "users"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"users_email_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "users_email_key",
+          "public",
+          "\"public\".\"users\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"users_email_key\"",
+        "sql": "ALTER TABLE \"public\".\"users\" ADD CONSTRAINT \"users_email_key\" UNIQUE (\"email\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"users_email_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "users_email_key",
+          "public",
+          "\"public\".\"users\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.vendors.vendors_user_id_key",
+    "label": "Add unique constraint on \"vendors\" (user_id)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "vendors_user_id_key",
+        "table": "vendors"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"vendors_user_id_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "vendors_user_id_key",
+          "public",
+          "\"public\".\"vendors\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"vendors_user_id_key\"",
+        "sql": "ALTER TABLE \"public\".\"vendors\" ADD CONSTRAINT \"vendors_user_id_key\" UNIQUE (\"user_id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"vendors_user_id_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "vendors_user_id_key",
+          "public",
+          "\"public\".\"vendors\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.events.events_date_idx_b4ca319c",
+    "label": "Create index \"events_date_idx_b4ca319c\" on \"events\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "events_date_idx_b4ca319c",
+        "table": "events"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"events_date_idx_b4ca319c\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"events_date_idx_b4ca319c\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"events_date_idx_b4ca319c\"",
+        "sql": "CREATE INDEX \"events_date_idx_b4ca319c\" ON \"public\".\"events\" (\"date\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"events_date_idx_b4ca319c\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"events_date_idx_b4ca319c\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.events.events_host_id_idx_03c77a67",
+    "label": "Create index \"events_host_id_idx_03c77a67\" on \"events\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "events_host_id_idx_03c77a67",
+        "table": "events"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"events_host_id_idx_03c77a67\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"events_host_id_idx_03c77a67\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"events_host_id_idx_03c77a67\"",
+        "sql": "CREATE INDEX \"events_host_id_idx_03c77a67\" ON \"public\".\"events\" (\"host_id\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"events_host_id_idx_03c77a67\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"events_host_id_idx_03c77a67\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.events.events_slug_idx_73b7f5ce",
+    "label": "Create index \"events_slug_idx_73b7f5ce\" on \"events\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "events_slug_idx_73b7f5ce",
+        "table": "events"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"events_slug_idx_73b7f5ce\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"events_slug_idx_73b7f5ce\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"events_slug_idx_73b7f5ce\"",
+        "sql": "CREATE INDEX \"events_slug_idx_73b7f5ce\" ON \"public\".\"events\" (\"slug\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"events_slug_idx_73b7f5ce\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"events_slug_idx_73b7f5ce\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.events.events_status_idx_e98638ab",
+    "label": "Create index \"events_status_idx_e98638ab\" on \"events\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "events_status_idx_e98638ab",
+        "table": "events"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"events_status_idx_e98638ab\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"events_status_idx_e98638ab\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"events_status_idx_e98638ab\"",
+        "sql": "CREATE INDEX \"events_status_idx_e98638ab\" ON \"public\".\"events\" (\"status\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"events_status_idx_e98638ab\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"events_status_idx_e98638ab\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.events.events_vendor_id_idx_77af3ed6",
+    "label": "Create index \"events_vendor_id_idx_77af3ed6\" on \"events\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "events_vendor_id_idx_77af3ed6",
+        "table": "events"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"events_vendor_id_idx_77af3ed6\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"events_vendor_id_idx_77af3ed6\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"events_vendor_id_idx_77af3ed6\"",
+        "sql": "CREATE INDEX \"events_vendor_id_idx_77af3ed6\" ON \"public\".\"events\" (\"vendor_id\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"events_vendor_id_idx_77af3ed6\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"events_vendor_id_idx_77af3ed6\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.orders.orders_event_id_idx_a0568112",
+    "label": "Create index \"orders_event_id_idx_a0568112\" on \"orders\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "orders_event_id_idx_a0568112",
+        "table": "orders"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"orders_event_id_idx_a0568112\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"orders_event_id_idx_a0568112\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"orders_event_id_idx_a0568112\"",
+        "sql": "CREATE INDEX \"orders_event_id_idx_a0568112\" ON \"public\".\"orders\" (\"event_id\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"orders_event_id_idx_a0568112\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"orders_event_id_idx_a0568112\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.orders.orders_user_id_idx_6c952402",
+    "label": "Create index \"orders_user_id_idx_6c952402\" on \"orders\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "orders_user_id_idx_6c952402",
+        "table": "orders"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"orders_user_id_idx_6c952402\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"orders_user_id_idx_6c952402\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"orders_user_id_idx_6c952402\"",
+        "sql": "CREATE INDEX \"orders_user_id_idx_6c952402\" ON \"public\".\"orders\" (\"user_id\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"orders_user_id_idx_6c952402\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"orders_user_id_idx_6c952402\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.photos.photos_event_id_idx_a0568112",
+    "label": "Create index \"photos_event_id_idx_a0568112\" on \"photos\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "photos_event_id_idx_a0568112",
+        "table": "photos"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"photos_event_id_idx_a0568112\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"photos_event_id_idx_a0568112\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"photos_event_id_idx_a0568112\"",
+        "sql": "CREATE INDEX \"photos_event_id_idx_a0568112\" ON \"public\".\"photos\" (\"event_id\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"photos_event_id_idx_a0568112\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"photos_event_id_idx_a0568112\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.photos.photos_event_id_status_idx_e23e0027",
+    "label": "Create index \"photos_event_id_status_idx_e23e0027\" on \"photos\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "photos_event_id_status_idx_e23e0027",
+        "table": "photos"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"photos_event_id_status_idx_e23e0027\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"photos_event_id_status_idx_e23e0027\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"photos_event_id_status_idx_e23e0027\"",
+        "sql": "CREATE INDEX \"photos_event_id_status_idx_e23e0027\" ON \"public\".\"photos\" (\"event_id\", \"status\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"photos_event_id_status_idx_e23e0027\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"photos_event_id_status_idx_e23e0027\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.photos.photos_status_idx_e98638ab",
+    "label": "Create index \"photos_status_idx_e98638ab\" on \"photos\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "photos_status_idx_e98638ab",
+        "table": "photos"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"photos_status_idx_e98638ab\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"photos_status_idx_e98638ab\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"photos_status_idx_e98638ab\"",
+        "sql": "CREATE INDEX \"photos_status_idx_e98638ab\" ON \"public\".\"photos\" (\"status\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"photos_status_idx_e98638ab\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"photos_status_idx_e98638ab\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.photos.photos_uploaded_at_idx_7a193613",
+    "label": "Create index \"photos_uploaded_at_idx_7a193613\" on \"photos\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "photos_uploaded_at_idx_7a193613",
+        "table": "photos"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"photos_uploaded_at_idx_7a193613\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"photos_uploaded_at_idx_7a193613\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"photos_uploaded_at_idx_7a193613\"",
+        "sql": "CREATE INDEX \"photos_uploaded_at_idx_7a193613\" ON \"public\".\"photos\" (\"uploaded_at\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"photos_uploaded_at_idx_7a193613\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"photos_uploaded_at_idx_7a193613\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.events.events_host_id_fkey",
+    "label": "Add foreign key \"events_host_id_fkey\" on \"events\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "events_host_id_fkey",
+        "table": "events"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"events_host_id_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "events_host_id_fkey",
+          "public",
+          "\"public\".\"events\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"events_host_id_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"events\"\nADD CONSTRAINT \"events_host_id_fkey\"\nFOREIGN KEY (\"host_id\")\nREFERENCES \"public\".\"users\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"events_host_id_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "events_host_id_fkey",
+          "public",
+          "\"public\".\"events\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.events.events_vendor_id_fkey",
+    "label": "Add foreign key \"events_vendor_id_fkey\" on \"events\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "events_vendor_id_fkey",
+        "table": "events"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"events_vendor_id_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "events_vendor_id_fkey",
+          "public",
+          "\"public\".\"events\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"events_vendor_id_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"events\"\nADD CONSTRAINT \"events_vendor_id_fkey\"\nFOREIGN KEY (\"vendor_id\")\nREFERENCES \"public\".\"vendors\" (\"id\")\nON DELETE SET NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"events_vendor_id_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "events_vendor_id_fkey",
+          "public",
+          "\"public\".\"events\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.orders.orders_event_id_fkey",
+    "label": "Add foreign key \"orders_event_id_fkey\" on \"orders\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "orders_event_id_fkey",
+        "table": "orders"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"orders_event_id_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "orders_event_id_fkey",
+          "public",
+          "\"public\".\"orders\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"orders_event_id_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"orders\"\nADD CONSTRAINT \"orders_event_id_fkey\"\nFOREIGN KEY (\"event_id\")\nREFERENCES \"public\".\"events\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"orders_event_id_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "orders_event_id_fkey",
+          "public",
+          "\"public\".\"orders\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.orders.orders_user_id_fkey",
+    "label": "Add foreign key \"orders_user_id_fkey\" on \"orders\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "orders_user_id_fkey",
+        "table": "orders"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"orders_user_id_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "orders_user_id_fkey",
+          "public",
+          "\"public\".\"orders\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"orders_user_id_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"orders\"\nADD CONSTRAINT \"orders_user_id_fkey\"\nFOREIGN KEY (\"user_id\")\nREFERENCES \"public\".\"users\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"orders_user_id_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "orders_user_id_fkey",
+          "public",
+          "\"public\".\"orders\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.photos.photos_event_id_fkey",
+    "label": "Add foreign key \"photos_event_id_fkey\" on \"photos\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "photos_event_id_fkey",
+        "table": "photos"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"photos_event_id_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "photos_event_id_fkey",
+          "public",
+          "\"public\".\"photos\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"photos_event_id_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"photos\"\nADD CONSTRAINT \"photos_event_id_fkey\"\nFOREIGN KEY (\"event_id\")\nREFERENCES \"public\".\"events\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"photos_event_id_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "photos_event_id_fkey",
+          "public",
+          "\"public\".\"photos\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.vendors.vendors_user_id_fkey",
+    "label": "Add foreign key \"vendors_user_id_fkey\" on \"vendors\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "vendors_user_id_fkey",
+        "table": "vendors"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"vendors_user_id_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "vendors_user_id_fkey",
+          "public",
+          "\"public\".\"vendors\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"vendors_user_id_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"vendors\"\nADD CONSTRAINT \"vendors_user_id_fkey\"\nFOREIGN KEY (\"user_id\")\nREFERENCES \"public\".\"users\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"vendors_user_id_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "vendors_user_id_fkey",
+          "public",
+          "\"public\".\"vendors\""
+        ]
+      }
+    ]
+  }
+]

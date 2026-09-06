@@ -132,6 +132,7 @@ model Event {
   @@index([slug])
   @@index([status])
   @@index([date])
+  @@index([hostId, status])
   @@map("events")
 }
 
