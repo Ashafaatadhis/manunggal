@@ -122,7 +122,7 @@ export interface ApiResponse<T> {
   };
 }
 
-// Event list item for dashboard
+// Event list item for dashboard (photos is the Prisma Next include-count result)
 export interface EventListItem {
   id: string;
   title: string;
@@ -130,7 +130,5 @@ export interface EventListItem {
   eventType: Event["eventType"];
   date: Date;
   status: Event["status"];
-  _count: {
-    photos: number;
-  };
+  photos: number;
 }

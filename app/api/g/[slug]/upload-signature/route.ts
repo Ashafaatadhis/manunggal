@@ -10,17 +10,16 @@ export async function GET(
 ) {
   try {
     const { slug } = await params;
-    const event = await db.event.findUnique({
-      where: { slug },
-      select: { id: true, status: true },
-    });
+    const event = await db.orm.public.Event.where((e) => e.slug.eq(slug))
+      .select("id", "status")
+      .first();
 
     if (!event) {
-      return Errors.EVENT_NOT_FOUND() as any;
+      return handleApiError(Errors.EVENT_NOT_FOUND());
     }
 
     if (event.status === "ended") {
-      return Errors.EVENT_ENDED() as any;
+      return handleApiError(Errors.EVENT_ENDED());
     }
 
     const signature = generateUploadSignature(event.id);

@@ -15,7 +15,7 @@ interface DashboardStats {
 }
 
 interface EventWithCount extends Event {
-  _count: { photos: number };
+  photos: number;
 }
 
 export default function DashboardPage() {

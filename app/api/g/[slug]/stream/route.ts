@@ -7,10 +7,9 @@ export async function GET(
   { params }: { params: Promise<{ slug: string }> }
 ) {
   const { slug } = await params;
-  const event = await db.event.findUnique({
-    where: { slug },
-    select: { id: true },
-  });
+  const event = await db.orm.public.Event.where((e) => e.slug.eq(slug))
+    .select("id")
+    .first();
 
   if (!event) {
     return new Response("Event not found", { status: 404 });

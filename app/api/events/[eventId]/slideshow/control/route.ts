@@ -15,13 +15,13 @@ export async function POST(
   try {
     const session = await requireAuth();
 
-    const event = await db.event.findUnique({
-      where: { id: eventId, hostId: session.userId },
-      select: { id: true, settings: true },
-    });
+    const event = await db.orm.public.Event.where((e) => e.id.eq(eventId))
+      .where((e) => e.hostId.eq(session.userId))
+      .select("id", "settings")
+      .first();
 
     if (!event) {
-      return Errors.EVENT_NOT_FOUND() as any;
+      return handleApiError(Errors.EVENT_NOT_FOUND());
     }
 
     const body = await req.json();
@@ -37,9 +37,8 @@ export async function POST(
           ...config,
         },
       };
-      await db.event.update({
-        where: { id: eventId },
-        data: { settings: next },
+      await db.orm.public.Event.where((e) => e.id.eq(eventId)).update({
+        settings: next as never,
       });
     }
 

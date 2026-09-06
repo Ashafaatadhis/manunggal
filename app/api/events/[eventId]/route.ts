@@ -12,20 +12,15 @@ export async function GET(
   try {
     const session = await requireAuth();
 
-    const event = await db.event.findUnique({
-      where: {
-        id: eventId,
-        hostId: session.userId,
-      },
-      include: {
-        photos: {
-          orderBy: { uploadedAt: "desc" },
-        },
-      },
-    });
+    const event = await db.orm.public.Event.where((e) => e.id.eq(eventId))
+      .where((e) => e.hostId.eq(session.userId))
+      .include("photos", (photos) =>
+        photos.orderBy((p) => p.uploadedAt.desc())
+      )
+      .first();
 
     if (!event) {
-      return Errors.EVENT_NOT_FOUND() as any;
+      return handleApiError(Errors.EVENT_NOT_FOUND());
     }
 
     return successResponse(event);
@@ -42,23 +37,23 @@ export async function PATCH(
   try {
     const session = await requireAuth();
 
-    const event = await db.event.findUnique({
-      where: {
-        id: eventId,
-        hostId: session.userId,
-      },
-    });
+    const event = await db.orm.public.Event.where((e) => e.id.eq(eventId))
+      .where((e) => e.hostId.eq(session.userId))
+      .first();
 
     if (!event) {
-      return Errors.EVENT_NOT_FOUND() as any;
+      return handleApiError(Errors.EVENT_NOT_FOUND());
     }
 
     const body = await req.json();
 
-    const updatedEvent = await db.event.update({
-      where: { id: eventId },
-      data: body,
-    });
+    const updatedEvent = await db.orm.public.Event.where((e) =>
+      e.id.eq(eventId)
+    ).update(body);
+
+    if (!updatedEvent) {
+      return handleApiError(Errors.EVENT_NOT_FOUND());
+    }
 
     eventLogger.info({ eventId: updatedEvent.id }, "Event updated");
 
@@ -76,20 +71,15 @@ export async function DELETE(
   try {
     const session = await requireAuth();
 
-    const event = await db.event.findUnique({
-      where: {
-        id: eventId,
-        hostId: session.userId,
-      },
-    });
+    const event = await db.orm.public.Event.where((e) => e.id.eq(eventId))
+      .where((e) => e.hostId.eq(session.userId))
+      .first();
 
     if (!event) {
-      return Errors.EVENT_NOT_FOUND() as any;
+      return handleApiError(Errors.EVENT_NOT_FOUND());
     }
 
-    await db.event.delete({
-      where: { id: eventId },
-    });
+    await db.orm.public.Event.where((e) => e.id.eq(eventId)).delete();
 
     eventLogger.info({ eventId }, "Event deleted");
 

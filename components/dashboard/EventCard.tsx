@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import type { Event } from "@/lib/types";
 
 interface EventCardProps {
-  event: Event & { _count?: { photos: number } };
+  event: Event & { photos?: number };
 }
 
 const statusColors: Record<Event["status"], string> = {
@@ -58,10 +58,10 @@ export default function EventCard({ event }: EventCardProps) {
                 <span>{event.venue}</span>
               </div>
             )}
-            {event._count && (
+            {typeof event.photos === "number" && (
               <div className="flex items-center gap-2">
                 <span>📷</span>
-                <span>{event._count.photos} photos</span>
+                <span>{event.photos} photos</span>
               </div>
             )}
           </div>

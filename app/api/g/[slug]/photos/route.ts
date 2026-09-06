@@ -11,27 +11,27 @@ export async function GET(
 ) {
   try {
     const { slug } = await params;
-    const event = await db.event.findUnique({
-      where: { slug },
-      select: { id: true, status: true, settings: true },
-    });
+    const event = await db.orm.public.Event.where((e) => e.slug.eq(slug))
+      .select("id", "status", "settings")
+      .first();
 
     if (!event) {
-      return Errors.EVENT_NOT_FOUND() as any;
+      return handleApiError(Errors.EVENT_NOT_FOUND());
     }
 
     const isGuest = !req.cookies.get("token")?.value;
 
-    const where = {
-      eventId: event.id,
-      ...(isGuest ? { status: "approved" as const } : { status: { not: "deleted" as const } }),
-    };
+    let photoQuery = db.orm.public.Photo.where((p) => p.eventId.eq(event.id));
+    if (isGuest) {
+      photoQuery = photoQuery.where((p) => p.status.eq("approved"));
+    } else {
+      photoQuery = photoQuery.where((p) => p.status.neq("deleted"));
+    }
 
-    const photos = await db.photo.findMany({
-      where,
-      orderBy: { uploadedAt: "desc" },
-      take: 100,
-    });
+    const photos = await photoQuery
+      .orderBy((p) => p.uploadedAt.desc())
+      .limit(100)
+      .all();
 
     return successResponse(photos);
   } catch (error) {
@@ -45,17 +45,16 @@ export async function POST(
 ) {
   try {
     const { slug } = await params;
-    const event = await db.event.findUnique({
-      where: { slug },
-      select: { id: true, status: true, settings: true },
-    });
+    const event = await db.orm.public.Event.where((e) => e.slug.eq(slug))
+      .select("id", "status", "settings")
+      .first();
 
     if (!event) {
-      return Errors.EVENT_NOT_FOUND() as any;
+      return handleApiError(Errors.EVENT_NOT_FOUND());
     }
 
     if (event.status === "ended") {
-      return Errors.EVENT_ENDED() as any;
+      return handleApiError(Errors.EVENT_ENDED());
     }
 
     const body = await req.json();
@@ -64,19 +63,20 @@ export async function POST(
     const settings = event.settings as Record<string, unknown>;
     const autoApprove = settings.autoApprove === true;
 
-    const photo = await db.photo.create({
-      data: {
-        eventId: event.id,
-        fileKey: data.fileKey,
-        fileUrl: data.fileUrl,
-        fileProvider: data.fileProvider,
-        thumbnailUrl: data.thumbnailUrl,
-        guestName: data.guestName,
-        guestIp: req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "unknown",
-        message: data.message,
-        status: autoApprove ? "approved" : "pending",
-        metadata: data.metadata ?? {},
-      },
+    const photo = await db.orm.public.Photo.create({
+      eventId: event.id,
+      fileKey: data.fileKey,
+      fileUrl: data.fileUrl,
+      fileProvider: data.fileProvider,
+      thumbnailUrl: data.thumbnailUrl,
+      guestName: data.guestName,
+      guestIp:
+        req.headers.get("x-forwarded-for") ||
+        req.headers.get("x-real-ip") ||
+        "unknown",
+      message: data.message,
+      status: autoApprove ? "approved" : "pending",
+      metadata: (data.metadata ?? {}) as never,
     });
 
     photoLogger.info(

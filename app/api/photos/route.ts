@@ -9,27 +9,21 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const status = searchParams.get("status");
 
-    const where = {
-      event: {
-        hostId: session.userId,
-      },
-      ...(status ? { status: status as any } : {}),
-    };
+    // Resolve the host's event ids first, then filter photos by membership.
+    const hostEvents = await db.orm.public.Event.select("id")
+      .where((e) => e.hostId.eq(session.userId))
+      .all();
+    const eventIds = hostEvents.map((e) => e.id);
 
-    const photos = await db.photo.findMany({
-      where,
-      include: {
-        event: {
-          select: {
-            id: true,
-            title: true,
-            slug: true,
-          },
-        },
-      },
-      orderBy: { uploadedAt: "desc" },
-      take: 100,
-    });
+    let photoQuery = db.orm.public.Photo.where((p) => p.eventId.in(eventIds));
+    if (status) {
+      photoQuery = photoQuery.where((p) => p.status.eq(status as never));
+    }
+    const photos = await photoQuery
+      .include("event", (event) => event.select("id", "title", "slug"))
+      .orderBy((p) => p.uploadedAt.desc())
+      .limit(100)
+      .all();
 
     return successResponse(photos);
   } catch (error) {

@@ -7,28 +7,21 @@ export async function GET(req: NextRequest) {
   try {
     const session = await requireAuth();
 
+    const hostEvents = await db.orm.public.Event.select("id")
+      .where((e) => e.hostId.eq(session.userId))
+      .all();
+    const eventIds = hostEvents.map((e) => e.id);
+
     const [totalEvents, activeEvents, totalPhotos, pendingPhotos] =
       await Promise.all([
-        db.event.count({
-          where: { hostId: session.userId },
-        }),
-        db.event.count({
-          where: {
-            hostId: session.userId,
-            status: { in: ["active", "live"] },
-          },
-        }),
-        db.photo.count({
-          where: {
-            event: { hostId: session.userId },
-          },
-        }),
-        db.photo.count({
-          where: {
-            event: { hostId: session.userId },
-            status: "pending",
-          },
-        }),
+        db.orm.public.Event.where((e) => e.hostId.eq(session.userId)).count(),
+        db.orm.public.Event.where((e) => e.hostId.eq(session.userId))
+          .where((e) => e.status.in(["active", "live"]))
+          .count(),
+        db.orm.public.Photo.where((p) => p.eventId.in(eventIds)).count(),
+        db.orm.public.Photo.where((p) => p.eventId.in(eventIds))
+          .where((p) => p.status.eq("pending"))
+          .count(),
       ]);
 
     return successResponse({

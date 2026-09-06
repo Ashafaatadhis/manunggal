@@ -8,28 +8,27 @@ export async function GET(
 ) {
   const { slug } = await params;
   try {
-    const event = await db.event.findUnique({
-      where: { slug },
-      select: {
-        id: true,
-        title: true,
-        slug: true,
-        eventType: true,
-        date: true,
-        startTime: true,
-        endTime: true,
-        venue: true,
-        status: true,
-        branding: true,
-      },
-    });
+    const event = await db.orm.public.Event.where((e) => e.slug.eq(slug))
+      .select(
+        "id",
+        "title",
+        "slug",
+        "eventType",
+        "date",
+        "startTime",
+        "endTime",
+        "venue",
+        "status",
+        "branding"
+      )
+      .first();
 
     if (!event) {
-      return Errors.EVENT_NOT_FOUND() as any;
+      return handleApiError(Errors.EVENT_NOT_FOUND());
     }
 
     if (event.status === "draft") {
-      return Errors.EVENT_NOT_ACTIVE() as any;
+      return handleApiError(Errors.EVENT_NOT_ACTIVE());
     }
 
     return successResponse(event);

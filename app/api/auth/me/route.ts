@@ -8,16 +8,15 @@ export async function GET(req: NextRequest) {
     const session = await getSession();
 
     if (!session) {
-      return Errors.UNAUTHORIZED() as any;
+      return handleApiError(Errors.UNAUTHORIZED());
     }
 
-    const user = await db.user.findUnique({
-      where: { id: session.userId },
-      select: { id: true, email: true, name: true, role: true, createdAt: true },
-    });
+    const user = await db.orm.public.User.where((u) => u.id.eq(session.userId))
+      .select("id", "email", "name", "role", "createdAt")
+      .first();
 
     if (!user) {
-      return Errors.NOT_FOUND("User") as any;
+      return handleApiError(Errors.NOT_FOUND("User"));
     }
 
     return successResponse(user);

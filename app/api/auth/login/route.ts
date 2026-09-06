@@ -13,20 +13,20 @@ export async function POST(req: NextRequest) {
 
     authLogger.info({ email: data.email }, "Login attempt");
 
-    const user = await db.user.findUnique({
-      where: { email: data.email },
-    });
+    const user = await db.orm.public.User.where((u) =>
+      u.email.eq(data.email)
+    ).first();
 
     if (!user) {
       authLogger.warn({ email: data.email, reason: "user_not_found" }, "Login failed");
-      return Errors.VALIDATION("Email atau password salah") as any;
+      return handleApiError(Errors.VALIDATION("Email atau password salah"));
     }
 
     const isValidPassword = await compare(data.password, user.password);
 
     if (!isValidPassword) {
       authLogger.warn({ email: data.email, reason: "invalid_password" }, "Login failed");
-      return Errors.VALIDATION("Email atau password salah") as any;
+      return handleApiError(Errors.VALIDATION("Email atau password salah"));
     }
 
     const token = await signToken({

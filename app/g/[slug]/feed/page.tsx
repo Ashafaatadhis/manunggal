@@ -9,10 +9,9 @@ export default async function FeedPage({
 }) {
   const { slug } = await params;
 
-  const event = await db.event.findUnique({
-    where: { slug },
-    select: { id: true, title: true },
-  });
+  const event = await db.orm.public.Event.where((e) => e.slug.eq(slug))
+    .select("id", "title")
+    .first();
 
   if (!event) {
     return (
@@ -22,14 +21,11 @@ export default async function FeedPage({
     );
   }
 
-  const rows = await db.photo.findMany({
-    where: {
-      eventId: event.id,
-      status: "approved",
-    },
-    orderBy: { uploadedAt: "desc" },
-    take: 100,
-  });
+  const rows = await db.orm.public.Photo.where((p) => p.eventId.eq(event.id))
+    .where((p) => p.status.eq("approved"))
+    .orderBy((p) => p.uploadedAt.desc())
+    .limit(100)
+    .all();
 
   const photos = rows.map(toPhoto);
 

@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import type { Event, ApiResponse } from "@/lib/types";
 
 interface EventWithCount extends Event {
-  _count: { photos: number };
+  photos: number;
 }
 
 export default function EventsPage() {

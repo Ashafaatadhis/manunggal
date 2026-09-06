@@ -10,10 +10,9 @@ export default async function LiveSlideshowPage({
 }) {
   const { slug } = await params;
 
-  const event = await db.event.findUnique({
-    where: { slug },
-    select: { id: true, slug: true, title: true, status: true, settings: true },
-  });
+  const event = await db.orm.public.Event.where((e) => e.slug.eq(slug))
+    .select("id", "slug", "title", "status", "settings")
+    .first();
 
   if (!event || event.status === "draft") {
     return (
@@ -23,11 +22,11 @@ export default async function LiveSlideshowPage({
     );
   }
 
-  const rows = await db.photo.findMany({
-    where: { eventId: event.id, status: "approved" },
-    orderBy: { uploadedAt: "desc" },
-    take: 500,
-  });
+  const rows = await db.orm.public.Photo.where((p) => p.eventId.eq(event.id))
+    .where((p) => p.status.eq("approved"))
+    .orderBy((p) => p.uploadedAt.desc())
+    .limit(500)
+    .all();
 
   return (
     <SlideshowStage

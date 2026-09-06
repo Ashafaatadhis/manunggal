@@ -13,23 +13,21 @@ export async function POST(req: NextRequest) {
 
     authLogger.info({ email: data.email }, "Register attempt");
 
-    const existingUser = await db.user.findUnique({
-      where: { email: data.email },
-    });
+    const existingUser = await db.orm.public.User.where((u) =>
+      u.email.eq(data.email)
+    ).first();
 
     if (existingUser) {
-      return Errors.CONFLICT("Email sudah terdaftar") as any;
+      return handleApiError(Errors.CONFLICT("Email sudah terdaftar"));
     }
 
     const hashedPassword = await hash(data.password, 12);
 
-    const user = await db.user.create({
-      data: {
-        email: data.email,
-        name: data.name,
-        password: hashedPassword,
-        role: data.role,
-      },
+    const user = await db.orm.public.User.create({
+      email: data.email,
+      name: data.name,
+      password: hashedPassword,
+      role: data.role,
     });
 
     const token = await signToken({

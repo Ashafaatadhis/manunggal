@@ -110,10 +110,10 @@ describe("Types", () => {
       eventType: "birthday",
       date: new Date(),
       status: "live",
-      _count: { photos: 42 },
+      photos: 42,
     };
 
-    expect(item._count.photos).toBe(42);
+    expect(item.photos).toBe(42);
   });
 
   it("should define EventSettings type correctly", () => {

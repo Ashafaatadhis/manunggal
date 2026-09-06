@@ -4,6 +4,7 @@ import { publishModeration } from "@/lib/redis";
 import { requireAuth } from "@/lib/auth";
 import { successResponse, handleApiError, Errors } from "@/lib/errors";
 import { photoLogger } from "@/lib/logger";
+import { toInstant } from "@/lib/temporal";
 import { z } from "zod";
 
 const moderationSchema = z.object({
@@ -18,24 +19,20 @@ export async function PATCH(
   try {
     const session = await requireAuth();
 
-    const photo = await db.photo.findUnique({
-      where: { id },
-      select: { id: true, eventId: true, status: true },
-    });
+    const photo = await db.orm.public.Photo.where((p) => p.id.eq(id))
+      .select("id", "eventId", "status")
+      .first();
 
     if (!photo) {
-      return Errors.PHOTO_NOT_FOUND() as any;
+      return handleApiError(Errors.PHOTO_NOT_FOUND());
     }
 
     const body = await req.json();
     const data = moderationSchema.parse(body);
 
-    const updatedPhoto = await db.photo.update({
-      where: { id },
-      data: {
-        status: data.status,
-        moderatedAt: new Date(),
-      },
+    const updatedPhoto = await db.orm.public.Photo.where((p) => p.id.eq(id)).update({
+      status: data.status,
+      moderatedAt: toInstant(new Date()),
     });
 
     photoLogger.info(

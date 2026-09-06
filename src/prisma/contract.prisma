@@ -1,66 +1,72 @@
-generator client {
-  provider = "prisma-client"
-  output   = "../lib/generated/prisma"
-}
+// use prisma-next
+// Manunggal data contract — ported from Prisma 7 schema.
 
-datasource db {
-  provider = "postgresql"
-}
+// --- Enums (value-set stored as text, enforced by CHECK constraints) ---
 
 enum UserRole {
-  host
-  vendor
-  admin
+  @@type("pg/text@1")
+  host = "host"
+  vendor = "vendor"
+  admin = "admin"
 }
 
 enum EventStatus {
-  draft
-  active
-  live
-  ended
+  @@type("pg/text@1")
+  draft = "draft"
+  active = "active"
+  live = "live"
+  ended = "ended"
 }
 
 enum EventType {
-  wedding
-  birthday
-  graduation
-  corporate
-  other
+  @@type("pg/text@1")
+  wedding = "wedding"
+  birthday = "birthday"
+  graduation = "graduation"
+  corporate = "corporate"
+  other = "other"
 }
 
 enum PhotoStatus {
-  pending
-  approved
-  hidden
-  deleted
+  @@type("pg/text@1")
+  pending = "pending"
+  approved = "approved"
+  hidden = "hidden"
+  deleted = "deleted"
 }
 
 enum OrderStatus {
-  pending
-  paid
-  expired
-  cancelled
+  @@type("pg/text@1")
+  pending = "pending"
+  paid = "paid"
+  expired = "expired"
+  cancelled = "cancelled"
 }
 
 enum PackageType {
-  free
-  pro_event
-  vendor_monthly
-  vendor_yearly
+  @@type("pg/text@1")
+  free = "free"
+  pro_event = "pro_event"
+  vendor_monthly = "vendor_monthly"
+  vendor_yearly = "vendor_yearly"
 }
 
 enum VendorSubscription {
-  free
-  pro
-  enterprise
+  @@type("pg/text@1")
+  free = "free"
+  pro = "pro"
+  enterprise = "enterprise"
 }
 
 enum FileProvider {
-  cloudinary
-  s3
-  r2
-  local
+  @@type("pg/text@1")
+  cloudinary = "cloudinary"
+  s3 = "s3"
+  r2 = "r2"
+  local = "local"
 }
+
+// --- Models ---
 
 model User {
   id        String   @id @default(uuid())
@@ -70,8 +76,8 @@ model User {
   role      UserRole @default(host)
   phone     String?
   avatarUrl String?  @map("avatar_url")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt Timestamptz @default(now()) @map("created_at")
+  updatedAt temporal.updatedAt() @map("updated_at")
 
   events Event[]
   orders Order[]
@@ -90,8 +96,8 @@ model Vendor {
   branding     Json               @default("{}")
   subscription VendorSubscription @default(free)
   maxEvents    Int?               @map("max_events")
-  createdAt    DateTime           @default(now()) @map("created_at")
-  updatedAt    DateTime           @updatedAt @map("updated_at")
+  createdAt    Timestamptz  @default(now()) @map("created_at")
+  updatedAt    temporal.updatedAt() @map("updated_at")
 
   user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   events Event[]
@@ -100,22 +106,22 @@ model Vendor {
 }
 
 model Event {
-  id          String      @id @default(uuid())
-  hostId      String      @map("host_id")
-  vendorId    String?     @map("vendor_id")
+  id          String   @id @default(uuid())
+  hostId      String   @map("host_id")
+  vendorId    String?  @map("vendor_id")
   title       String
-  slug        String      @unique
-  eventType   EventType   @map("event_type")
+  slug        String   @unique
+  eventType   EventType @map("event_type")
   description String?
-  date        DateTime    @db.Date
-  startTime   DateTime    @map("start_time")
-  endTime     DateTime    @map("end_time")
+  date        Timestamptz
+  startTime   Timestamptz @map("start_time")
+  endTime     Timestamptz @map("end_time")
   venue       String?
   status      EventStatus @default(draft)
-  settings    Json        @default("{}")
-  branding    Json        @default("{}")
-  createdAt   DateTime    @default(now()) @map("created_at")
-  updatedAt   DateTime    @updatedAt @map("updated_at")
+  settings    Json      @default("{}")
+  branding    Json      @default("{}")
+  createdAt   Timestamptz @default(now()) @map("created_at")
+  updatedAt   temporal.updatedAt() @map("updated_at")
 
   host   User     @relation(fields: [hostId], references: [id], onDelete: Cascade)
   vendor Vendor?  @relation(fields: [vendorId], references: [id], onDelete: SetNull)
@@ -141,8 +147,8 @@ model Photo {
   message      String?
   status       PhotoStatus  @default(pending)
   metadata     Json         @default("{}")
-  uploadedAt   DateTime     @default(now()) @map("uploaded_at")
-  moderatedAt  DateTime?    @map("moderated_at")
+  uploadedAt   Timestamptz @default(now()) @map("uploaded_at")
+  moderatedAt  Timestamptz? @map("moderated_at")
 
   event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
@@ -153,17 +159,17 @@ model Photo {
 }
 
 model Order {
-  id              String      @id @default(uuid())
-  eventId         String      @map("event_id")
-  userId          String      @map("user_id")
+  id              String   @id @default(uuid())
+  eventId         String   @map("event_id")
+  userId          String   @map("user_id")
   amount          Int
   package         PackageType
   status          OrderStatus @default(pending)
-  paymentMethod   String?     @map("payment_method")
-  paymentProofUrl String?     @map("payment_proof_url")
-  paidAt          DateTime?   @map("paid_at")
-  expiresAt       DateTime?   @map("expires_at")
-  createdAt       DateTime    @default(now()) @map("created_at")
+  paymentMethod   String?  @map("payment_method")
+  paymentProofUrl String?  @map("payment_proof_url")
+  paidAt          Timestamptz? @map("paid_at")
+  expiresAt       Timestamptz? @map("expires_at")
+  createdAt       Timestamptz @default(now()) @map("created_at")
 
   event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)

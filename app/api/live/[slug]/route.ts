@@ -11,23 +11,22 @@ export async function GET(
 ) {
   try {
     const { slug } = await params;
-    const event = await db.event.findUnique({
-      where: { slug },
-      select: { id: true, slug: true, title: true, status: true, settings: true },
-    });
+    const event = await db.orm.public.Event.where((e) => e.slug.eq(slug))
+      .select("id", "slug", "title", "status", "settings")
+      .first();
 
     if (!event) {
-      return Errors.EVENT_NOT_FOUND() as any;
+      return handleApiError(Errors.EVENT_NOT_FOUND());
     }
     if (event.status === "draft") {
-      return Errors.EVENT_NOT_ACTIVE() as any;
+      return handleApiError(Errors.EVENT_NOT_ACTIVE());
     }
 
-    const rows = await db.photo.findMany({
-      where: { eventId: event.id, status: "approved" },
-      orderBy: { uploadedAt: "desc" },
-      take: 500,
-    });
+    const rows = await db.orm.public.Photo.where((p) => p.eventId.eq(event.id))
+      .where((p) => p.status.eq("approved"))
+      .orderBy((p) => p.uploadedAt.desc())
+      .limit(500)
+      .all();
 
     const slideshowConfig: SlideshowConfig = readSlideshowConfig(event.settings);
 
