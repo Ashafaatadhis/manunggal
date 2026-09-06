@@ -1585,6 +1585,15 @@
                 },
                 {
                   "columns": [
+                    "event_id",
+                    "status"
+                  ],
+                  "name": "photos_event_id_status_idx_e23e0027",
+                  "prefix": "photos_event_id_status_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
                     "status"
                   ],
                   "name": "photos_status_idx_e98638ab",
@@ -1881,7 +1890,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "468e9a63ed23a956f5b2f950362029fd17746deb2dfccd7a67f48001d028b451"
+    "storageHash": "1edf489d21e7f83401a28f9e804c6a68f6a9f4f06b8d763cf9bf121d1200b1ec"
   },
   "execution": {
     "executionHash": "57b5ff2f9c2ca00e4e0e3d9670ff6c3b5fc5f277df7311b713cdb793a534cf99",

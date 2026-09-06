@@ -155,6 +155,7 @@ model Photo {
   @@index([eventId])
   @@index([status])
   @@index([uploadedAt])
+  @@index([eventId, status])
   @@map("photos")
 }
 
