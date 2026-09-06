@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyToken } from "@/lib/auth";
 
-const protectedRoutes = ["/host"];
+const protectedRoutes = ["/dashboard"];
 const authRoutes = ["/login", "/register"];
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const token = req.cookies.get("token")?.value;
 
@@ -23,7 +23,7 @@ export async function middleware(req: NextRequest) {
     const session = await verifyToken(token);
     if (session) {
       const url = req.nextUrl.clone();
-      url.pathname = "/host";
+      url.pathname = "/dashboard";
       return NextResponse.redirect(url);
     }
   }
@@ -32,5 +32,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/host/:path*", "/login", "/register"],
+  matcher: ["/dashboard/:path*", "/login", "/register"],
 };
