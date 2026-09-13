@@ -11,3 +11,4 @@ graphify-out
 .agents
 .claude
 *.log
+!docker-entrypoint.sh

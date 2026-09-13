@@ -11,6 +11,7 @@ services:
       HOSTNAME: 0.0.0.0
       PORT: 3000
       REDIS_URL: redis://redis:6379
+      SEED_ON_START: ${SEED_ON_START:-false}
     ports:
       - "3000:3000"
     depends_on:
