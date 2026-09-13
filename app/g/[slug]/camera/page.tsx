@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import CameraCapture from "@/components/guest/CameraCapture";
 import WishForm from "@/components/guest/WishForm";
@@ -12,6 +12,13 @@ export default function CameraPage() {
 
   const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
   const [uploadMessage, setUploadMessage] = useState("");
+
+  useEffect(() => {
+    if (!uploadMessage) return;
+
+    const timeout = window.setTimeout(() => setUploadMessage(""), 2000);
+    return () => window.clearTimeout(timeout);
+  }, [uploadMessage]);
 
   const handleCapture = (photo: string) => {
     setUploadMessage("");
