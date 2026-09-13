@@ -37,7 +37,7 @@ export default function CameraPage() {
   }
 
   return (
-    <div className="relative">
+    <div className="relative h-[100dvh] overflow-hidden">
       <CameraCapture onCapture={handleCapture} onBack={handleBack} />
       {uploadMessage && (
         <div

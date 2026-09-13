@@ -13,15 +13,19 @@ export default function NameInput({ onNameSet }: NameInputProps) {
   useEffect(() => {
     const stored = localStorage.getItem("guestName");
     if (stored) {
+      // Read browser-only guest identity after hydration.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSavedName(stored);
       onNameSet(stored);
     }
   }, [onNameSet]);
 
   const handleSubmit = () => {
-    if (name.trim()) {
-      localStorage.setItem("guestName", name.trim());
-      onNameSet(name.trim());
+    const trimmedName = name.trim();
+    if (trimmedName) {
+      localStorage.setItem("guestName", trimmedName);
+      setSavedName(trimmedName);
+      onNameSet(trimmedName);
     }
   };
 

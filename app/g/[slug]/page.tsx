@@ -59,19 +59,19 @@ export default function GuestLandingPage() {
               onClick={() => router.push(`/g/${slug}/camera`)}
               className="w-full bg-primary text-primary-foreground py-4 rounded-xl text-lg font-medium hover:bg-primary/90 transition-colors"
             >
-              📸 Mulai Motret
+              Mulai Motret
             </button>
             <button
               onClick={() => router.push(`/g/${slug}/upload`)}
               className="w-full bg-white text-foreground py-4 rounded-xl text-lg font-medium border border-border hover:bg-muted transition-colors"
             >
-              🖼️ Pilih dari Galeri
+              Pilih dari Galeri
             </button>
             <button
               onClick={() => router.push(`/g/${slug}/feed`)}
               className="w-full text-primary py-4 text-lg font-medium hover:text-primary/80 transition-colors"
             >
-              📷 Lihat Feed
+              Lihat Feed
             </button>
           </div>
         )}

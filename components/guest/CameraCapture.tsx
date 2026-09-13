@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useCamera } from "@/hooks/useCamera";
+import { ArrowLeft, Camera, RotateCw, Send, Trash2 } from "lucide-react";
 
 interface CameraCaptureProps {
   onCapture: (photo: string) => void;
@@ -9,13 +10,13 @@ interface CameraCaptureProps {
 }
 
 export default function CameraCapture({ onCapture, onBack }: CameraCaptureProps) {
-  const { videoRef, canvasRef, photo, startCamera, stopCamera, takePhoto, flipCamera, clearPhoto } =
+  const { videoRef, canvasRef, photo, startCamera, stopCamera, takePhoto, flipCamera, clearPhoto, facingMode } =
     useCamera();
 
   useEffect(() => {
     startCamera();
     return () => stopCamera();
-  }, []);
+  }, [facingMode, startCamera, stopCamera]);
 
   const handleCapture = () => {
     const photoData = takePhoto();
@@ -25,7 +26,7 @@ export default function CameraCapture({ onCapture, onBack }: CameraCaptureProps)
   };
 
   return (
-    <div className="relative w-full h-screen bg-black">
+    <div className="relative h-[100dvh] w-full overflow-hidden bg-black">
       <canvas ref={canvasRef} className="hidden" />
 
       {photo ? (
@@ -36,13 +37,15 @@ export default function CameraCapture({ onCapture, onBack }: CameraCaptureProps)
               onClick={clearPhoto}
               className="px-6 py-3 bg-white/20 backdrop-blur text-white rounded-xl"
             >
-              ❌ Hapus
+              <Trash2 className="size-4" aria-hidden="true" />
+              Hapus
             </button>
             <button
               onClick={() => onCapture(photo)}
               className="px-6 py-3 bg-primary text-primary-foreground rounded-xl font-medium"
             >
-              📤 Kirim
+              <Send className="size-4" aria-hidden="true" />
+              Kirim
             </button>
           </div>
         </div>
@@ -58,9 +61,9 @@ export default function CameraCapture({ onCapture, onBack }: CameraCaptureProps)
           <div className="absolute top-4 left-4">
             <button
               onClick={onBack}
-              className="p-2 bg-black/30 backdrop-blur text-white rounded-full"
+              className="flex size-11 items-center justify-center rounded-full bg-black/30 p-2 text-white backdrop-blur"
             >
-              ←
+              <ArrowLeft className="size-5" aria-hidden="true" />
             </button>
           </div>
           <div className="absolute bottom-8 left-0 right-0 flex justify-center items-center gap-8">
@@ -68,12 +71,15 @@ export default function CameraCapture({ onCapture, onBack }: CameraCaptureProps)
               onClick={flipCamera}
               className="p-4 bg-black/30 backdrop-blur text-white rounded-full"
             >
-              🔄
+              <RotateCw className="size-5" aria-hidden="true" />
             </button>
             <button
               onClick={handleCapture}
-              className="w-20 h-20 bg-white rounded-full border-4 border-white/50 active:scale-95 transition-transform"
-            />
+              className="flex size-20 items-center justify-center rounded-full border-4 border-white/50 bg-white transition-transform active:scale-95"
+              aria-label="Ambil foto"
+            >
+              <Camera className="size-8 text-black" aria-hidden="true" />
+            </button>
             <div className="w-12" />
           </div>
         </>

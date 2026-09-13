@@ -35,6 +35,19 @@ describe("NameInput", () => {
     expect(mockOnNameSet).toHaveBeenCalledWith("Rian");
   });
 
+  it("should show saved name immediately after save", () => {
+    render(<NameInput onNameSet={mockOnNameSet} />);
+
+    fireEvent.change(screen.getByPlaceholderText("Masukkan namamu"), {
+      target: { value: "Rian" },
+    });
+    fireEvent.click(screen.getByText("Simpan"));
+
+    expect(screen.getByText(/Halo,/)).toBeInTheDocument();
+    expect(screen.getByText("Rian")).toBeInTheDocument();
+    expect(screen.queryByPlaceholderText("Masukkan namamu")).not.toBeInTheDocument();
+  });
+
   it("should call onNameSet with Anonymous when skip is clicked", () => {
     render(<NameInput onNameSet={mockOnNameSet} />);
 

@@ -17,15 +17,18 @@ interface UseCameraReturn {
 export function useCamera(): UseCameraReturn {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [stream, setStream] = useState<MediaStream | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const [, setStream] = useState<MediaStream | null>(null);
   const [facingMode, setFacingMode] = useState<"user" | "environment">("environment");
   const [photo, setPhoto] = useState<string | null>(null);
 
   const startCamera = useCallback(async () => {
     try {
+      streamRef.current?.getTracks().forEach((track) => track.stop());
       const mediaStream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode, width: { ideal: 1920 }, height: { ideal: 1080 } },
       });
+      streamRef.current = mediaStream;
       setStream(mediaStream);
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
@@ -36,11 +39,10 @@ export function useCamera(): UseCameraReturn {
   }, [facingMode]);
 
   const stopCamera = useCallback(() => {
-    if (stream) {
-      stream.getTracks().forEach((track) => track.stop());
-      setStream(null);
-    }
-  }, [stream]);
+    streamRef.current?.getTracks().forEach((track) => track.stop());
+    streamRef.current = null;
+    setStream(null);
+  }, []);
 
   const takePhoto = useCallback((): string | null => {
     if (!videoRef.current || !canvasRef.current) return null;
@@ -60,9 +62,8 @@ export function useCamera(): UseCameraReturn {
   }, []);
 
   const flipCamera = useCallback(() => {
-    stopCamera();
     setFacingMode((prev) => (prev === "user" ? "environment" : "user"));
-  }, [stopCamera]);
+  }, []);
 
   const clearPhoto = useCallback(() => {
     setPhoto(null);
