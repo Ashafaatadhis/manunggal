@@ -2,9 +2,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface StatsCardProps {
   title: string;
-  value: string | number;
+  value: React.ReactNode;
   description?: string;
-  icon?: string;
+  icon?: React.ReactNode;
 }
 
 export default function StatsCard({
@@ -19,7 +19,7 @@ export default function StatsCard({
         <CardTitle className="text-sm font-medium text-muted-foreground">
           {title}
         </CardTitle>
-        {icon && <span className="text-2xl">{icon}</span>}
+        {icon && <span aria-hidden="true">{icon}</span>}
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold">{value}</div>

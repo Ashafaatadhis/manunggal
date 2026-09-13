@@ -5,11 +5,23 @@ import { loginSchema } from "@/lib/validations";
 import { signToken } from "@/lib/auth";
 import { successResponse, handleApiError, Errors } from "@/lib/errors";
 import { authLogger } from "@/lib/logger";
+import { checkLoginRateLimit } from "@/lib/login-rate-limit";
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const data = loginSchema.parse(body);
+
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      req.headers.get("x-real-ip") ||
+      "unknown";
+    const rateLimit = await checkLoginRateLimit(data.email, ip);
+
+    if (!rateLimit.allowed) {
+      const response = handleApiError(Errors.RATE_LIMITED(), { route: "login" });
+      response.headers.set("Retry-After", String(rateLimit.retryAfter));
+      return response;
+    }
 
     authLogger.info({ email: data.email }, "Login attempt");
 

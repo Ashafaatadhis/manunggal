@@ -50,7 +50,35 @@ export const slideshowConfigSchema = z.object({
 });
 
 export const slideshowCommandSchema = z.object({
-  type: z.enum(["pause", "resume", "skip", "stop", "config"]),
+  type: z.enum(["pause", "resume", "prev", "next", "stop", "config"]),
   issuedBy: z.string().optional(),
   config: slideshowConfigSchema.optional(),
 });
+
+export const eventBrandingSchema = z.object({
+  branding: z.object({
+    accentColor: z.string().optional(),
+    logoUrl: z.string().url().nullable().optional(),
+    template: z.string().optional(),
+    qr: z.object({
+      colorPreset: z.enum(["floral", "birthday", "ink", "blush", "forest"]),
+      logoUrl: z.string().url().nullable(),
+    }).optional(),
+  }).strict(),
+});
+
+export const eventStatusSchema = z.object({
+  status: z.enum(["active", "ended"]),
+}).strict();
+
+export const eventSettingsSchema = z.object({
+  settings: z.object({
+    autoApprove: z.boolean().optional(),
+  }).strict(),
+}).strict();
+
+export const eventPatchSchema = z.union([
+  eventBrandingSchema,
+  eventStatusSchema,
+  eventSettingsSchema,
+]);

@@ -52,9 +52,9 @@ describe("Auth", () => {
       };
 
       vi.mocked(jwtVerify).mockResolvedValue({
-        payload: mockPayload as any,
+        payload: mockPayload,
         protectedHeader: { alg: "HS256" },
-      } as any);
+      } as never);
 
       const result = await verifyToken("valid-token");
 
@@ -71,5 +71,18 @@ describe("Auth", () => {
 
       expect(result).toBeNull();
     });
+  });
+
+  it("should reject token signing without a production secret", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("JWT_SECRET", "");
+
+    const { signToken } = await import("@/lib/auth");
+
+    await expect(
+      signToken({ userId: "user-123", email: "test@example.com", role: "host" })
+    ).rejects.toThrow("JWT_SECRET must be configured in production");
+
+    vi.unstubAllEnvs();
   });
 });

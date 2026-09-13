@@ -2,6 +2,14 @@
 
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  Clock3,
+  ExternalLink,
+  Pause,
+  Play,
+  SkipBack,
+  SkipForward,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type {
   ApiResponse,
@@ -24,6 +32,19 @@ export default function SlideshowPanel({
 }: SlideshowPanelProps) {
   const queryClient = useQueryClient();
   const [localInterval, setLocalInterval] = useState(intervalSec);
+  const [isPaused, setIsPaused] = useState(false);
+  const [activeCommand, setActiveCommand] = useState<SlideshowCommand["type"]>();
+
+  function sendCommand(command: SlideshowCommand) {
+    setActiveCommand(command.type);
+    send.mutate(command);
+  }
+
+  function togglePause() {
+    const type = isPaused ? "resume" : "pause";
+    setIsPaused((paused) => !paused);
+    sendCommand({ type });
+  }
 
   const send = useMutation({
     mutationFn: async (command: SlideshowCommand) => {
@@ -49,46 +70,51 @@ export default function SlideshowPanel({
           href={`/live/${slug}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-sm text-primary underline"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-primary underline-offset-4 hover:underline"
         >
-          Buka Layar Slideshow
+          <ExternalLink className="size-4" aria-hidden="true" />
+          Buka layar venue
         </a>
       </div>
 
       <div className="mb-3 flex flex-wrap gap-2">
         <Button
           size="sm"
-          variant="outline"
-          onClick={() => send.mutate({ type: "pause" })}
+          variant={isPaused ? "default" : "outline"}
+          aria-pressed={isPaused}
+          onClick={togglePause}
         >
-          ⏸ Jeda
+          {isPaused ? (
+            <Play data-icon="inline-start" aria-hidden="true" />
+          ) : (
+            <Pause data-icon="inline-start" aria-hidden="true" />
+          )}
+          {isPaused ? "Lanjutkan slideshow" : "Jeda slideshow"}
         </Button>
         <Button
           size="sm"
-          variant="outline"
-          onClick={() => send.mutate({ type: "resume" })}
+          variant={activeCommand === "prev" ? "default" : "outline"}
+          aria-pressed={activeCommand === "prev"}
+          onClick={() => sendCommand({ type: "prev" })}
         >
-          ▶ Lanjut
+          <SkipBack data-icon="inline-start" aria-hidden="true" />
+          Foto sebelumnya
         </Button>
         <Button
           size="sm"
-          variant="outline"
-          onClick={() => send.mutate({ type: "skip" })}
+          variant={activeCommand === "next" ? "default" : "outline"}
+          aria-pressed={activeCommand === "next"}
+          onClick={() => sendCommand({ type: "next" })}
         >
-          ⏭ Lewati
-        </Button>
-        <Button
-          size="sm"
-          variant="destructive"
-          onClick={() => send.mutate({ type: "stop" })}
-        >
-          ⏹ Berhenti
+          <SkipForward data-icon="inline-start" aria-hidden="true" />
+          Foto berikutnya
         </Button>
       </div>
 
       <div className="flex items-center gap-3 text-sm">
-        <label htmlFor="slideshow-interval" className="text-muted-foreground">
-          Interval
+        <label htmlFor="slideshow-interval" className="flex items-center gap-2 text-muted-foreground">
+          <Clock3 className="size-4 text-primary" aria-hidden="true" />
+          Ganti foto setiap
         </label>
         <select
           id="slideshow-interval"
@@ -96,7 +122,7 @@ export default function SlideshowPanel({
           onChange={(e) => {
             const v = Number(e.target.value);
             setLocalInterval(v);
-            send.mutate({
+            sendCommand({
               type: "config",
               config: { intervalSec: v, transition, showMessages: true },
             });

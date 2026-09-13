@@ -47,14 +47,14 @@ export default function RegisterForm() {
   });
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Daftar</CardTitle>
-        <CardDescription>Buat akun untuk kelola acaramu</CardDescription>
+    <Card className="border-0 bg-white shadow-[0_20px_70px_rgba(7,17,31,0.08)] ring-0">
+      <CardHeader className="px-6 pt-7 sm:px-8 sm:pt-8">
+        <CardTitle className="text-2xl tracking-tight">Mulai dari sini</CardTitle>
+        <CardDescription className="mt-1">Buat akun untuk mengumpulkan foto di event pertamamu.</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-6 pb-7 sm:px-8 sm:pb-8">
         <form
-          className="space-y-4"
+           className="flex flex-col gap-4"
           onSubmit={(e) => {
             e.preventDefault();
             setErrorMsg(null);
@@ -62,7 +62,7 @@ export default function RegisterForm() {
           }}
         >
           <div>
-            <label className="text-sm text-muted-foreground" htmlFor="name">
+            <label className="mb-1.5 block text-sm font-medium text-foreground" htmlFor="name">
               Nama
             </label>
             <Input
@@ -70,12 +70,13 @@ export default function RegisterForm() {
               type="text"
               required
               autoComplete="name"
+              placeholder="Nama kamu"
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
           </div>
           <div>
-            <label className="text-sm text-muted-foreground" htmlFor="email">
+            <label className="mb-1.5 block text-sm font-medium text-foreground" htmlFor="email">
               Email
             </label>
             <Input
@@ -83,12 +84,13 @@ export default function RegisterForm() {
               type="email"
               required
               autoComplete="email"
+              placeholder="nama@email.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
           <div>
-            <label className="text-sm text-muted-foreground" htmlFor="password">
+            <label className="mb-1.5 block text-sm font-medium text-foreground" htmlFor="password">
               Password
             </label>
             <Input
@@ -97,20 +99,21 @@ export default function RegisterForm() {
               required
               minLength={6}
               autoComplete="new-password"
+              placeholder="Minimal 6 karakter"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
-          {errorMsg && <p className="text-sm text-red-600">{errorMsg}</p>}
+          {errorMsg && <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{errorMsg}</p>}
           <Button
             type="submit"
-            className="w-full"
+            className="mt-2 h-11 w-full"
             disabled={registerMutation.isPending}
           >
             {registerMutation.isPending ? <Spinner /> : "Daftar"}
           </Button>
         </form>
-        <p className="mt-4 text-center text-sm text-muted-foreground">
+        <p className="mt-6 text-center text-sm text-muted-foreground">
           Sudah punya akun?{" "}
           <Link href="/login" className="text-primary underline">
             Masuk

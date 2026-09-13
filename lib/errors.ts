@@ -83,4 +83,6 @@ export const Errors = {
     new AppError("PHOTO_NOT_FOUND", "Foto tidak ditemukan", 404),
   UPLOAD_FAILED: () =>
     new AppError("UPLOAD_FAILED", "Gagal mengunggah file", 500),
+  RATE_LIMITED: () =>
+    new AppError("RATE_LIMITED", "Terlalu banyak percobaan. Coba lagi nanti", 429),
 };

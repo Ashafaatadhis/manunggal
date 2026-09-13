@@ -1,17 +1,22 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { CircleCheck } from "lucide-react";
 import PhotoCard from "@/components/dashboard/PhotoCard";
 import type { Photo, ApiResponse } from "@/lib/types";
+import { CardListSkeleton, ErrorState } from "@/components/shared/AsyncState";
 
 export default function ModerationPage() {
   const queryClient = useQueryClient();
 
-  const { data: photos, isLoading } = useQuery({
+  const { data: photos, isLoading, error, refetch } = useQuery({
     queryKey: ["pending-photos"],
+    refetchInterval: 5000,
+    refetchOnWindowFocus: true,
     queryFn: async () => {
       const res = await fetch("/api/photos?status=pending");
       const data: ApiResponse<Photo[]> = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.error?.message || "Gagal memuat foto");
       return data.data || [];
     },
   });
@@ -72,7 +77,7 @@ export default function ModerationPage() {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">Photo Moderation</h2>
         {photos && photos.length > 0 && (
@@ -89,7 +94,9 @@ export default function ModerationPage() {
       </div>
 
       {isLoading ? (
-        <div className="text-center py-8 text-muted-foreground">Loading...</div>
+        <CardListSkeleton count={4} />
+      ) : error ? (
+        <ErrorState message={error.message} onRetry={() => void refetch()} />
       ) : photos && photos.length > 0 ? (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {photos.map((photo) => (
@@ -107,9 +114,12 @@ export default function ModerationPage() {
           ))}
         </div>
       ) : (
-        <div className="text-center py-12 border border-dashed rounded-lg">
-          <p className="text-4xl mb-4">✅</p>
-          <p className="text-muted-foreground">No photos pending moderation</p>
+        <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-slate-300 bg-slate-50/70 px-6 py-12 text-center">
+          <div className="flex size-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+            <CircleCheck className="size-6" aria-hidden="true" />
+          </div>
+          <p className="font-medium text-foreground">Semua foto sudah ditinjau</p>
+          <p className="text-sm text-muted-foreground">Belum ada foto yang menunggu moderasi.</p>
         </div>
       )}
     </div>

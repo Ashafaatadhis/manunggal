@@ -57,6 +57,10 @@ export async function POST(
       return handleApiError(Errors.EVENT_ENDED());
     }
 
+    if (event.status === "draft") {
+      return handleApiError(Errors.EVENT_NOT_ACTIVE());
+    }
+
     const body = await req.json();
     const data = uploadPhotoSchema.parse(body);
 

@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import NameInput from "@/components/guest/NameInput";
 import { useEvent } from "@/hooks/useEvent";
+import { ErrorState } from "@/components/shared/AsyncState";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function GuestLandingPage() {
   const params = useParams();
@@ -16,7 +18,7 @@ export default function GuestLandingPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-cream-100 flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+        <Spinner className="size-8 text-primary" />
       </div>
     );
   }
@@ -24,11 +26,8 @@ export default function GuestLandingPage() {
   if (error || !event) {
     return (
       <div className="min-h-screen bg-cream-100 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-foreground mb-2">Oops!</h1>
-          <p className="text-muted-foreground">
-            {error?.message || "Event tidak ditemukan"}
-          </p>
+        <div className="w-full max-w-md px-4">
+          <ErrorState message={error?.message || "Event tidak ditemukan"} />
         </div>
       </div>
     );

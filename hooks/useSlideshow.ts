@@ -129,7 +129,7 @@ export function useSlideshow(
           setIsStopped(false);
           setIsPlaying(true);
           break;
-        case "skip":
+        case "next":
           setDirection(1);
           setCurrentPhotoId((prev) => {
             const idx = reconcileTo(prev, 0);
@@ -137,6 +137,18 @@ export function useSlideshow(
             return (
               photosRef.current[(idx + 1) % photosRef.current.length]?.id ??
               null
+            );
+          });
+          break;
+        case "prev":
+          setDirection(-1);
+          setCurrentPhotoId((prev) => {
+            const idx = reconcileTo(prev, 0);
+            if (photosRef.current.length === 0) return null;
+            return (
+              photosRef.current[
+                (idx - 1 + photosRef.current.length) % photosRef.current.length
+              ]?.id ?? null
             );
           });
           break;
@@ -184,12 +196,22 @@ export function useSlideshow(
       });
     }, intervalSec * 1000);
     return () => clearInterval(timer);
-  }, [isPlaying, isStopped, intervalSec, reconcileTo, photos.length]);
+  }, [
+    isPlaying,
+    isStopped,
+    intervalSec,
+    reconcileTo,
+    photos.length,
+    currentPhotoId,
+  ]);
 
-  const currentIndex = useMemo(
-    () => reconcileTo(currentPhotoId, 0),
-    [currentPhotoId, reconcileTo, photos]
-  );
+  const currentIndex = useMemo(() => {
+    const index = currentPhotoId
+      ? photos.findIndex((photo) => photo.id === currentPhotoId)
+      : -1;
+    if (index >= 0) return index;
+    return photos.length > 0 ? 0 : -1;
+  }, [currentPhotoId, photos]);
 
   return {
     photos,

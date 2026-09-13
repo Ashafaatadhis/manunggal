@@ -5,6 +5,9 @@ import {
   createEventSchema,
   uploadPhotoSchema,
   slideshowConfigSchema,
+  eventBrandingSchema,
+  eventStatusSchema,
+  eventPatchSchema,
 } from "@/lib/validations";
 
 describe("registerSchema", () => {
@@ -155,5 +158,37 @@ describe("Slideshow validation", () => {
       transition: "fade",
     });
     expect(result.success).toBe(false);
+  });
+});
+
+describe("Event branding validation", () => {
+  it("accepts QR customization", () => {
+    expect(eventBrandingSchema.safeParse({
+      branding: { qr: { colorPreset: "forest", logoUrl: "https://example.com/logo.png" } },
+    }).success).toBe(true);
+  });
+
+  it("rejects invalid QR logo URLs", () => {
+    expect(eventBrandingSchema.safeParse({
+      branding: { qr: { colorPreset: "ink", logoUrl: "not-a-url" } },
+    }).success).toBe(false);
+  });
+});
+
+describe("Event status validation", () => {
+  it("accepts activation and ending statuses", () => {
+    expect(eventStatusSchema.safeParse({ status: "active" }).success).toBe(true);
+    expect(eventStatusSchema.safeParse({ status: "ended" }).success).toBe(true);
+  });
+
+  it("rejects unsupported status transitions", () => {
+    expect(eventStatusSchema.safeParse({ status: "live" }).success).toBe(false);
+  });
+});
+
+describe("Event patch validation", () => {
+  it("rejects mass-assignment fields", () => {
+    expect(eventPatchSchema.safeParse({ title: "Changed" }).success).toBe(false);
+    expect(eventPatchSchema.safeParse({ status: "active", role: "admin" }).success).toBe(false);
   });
 });

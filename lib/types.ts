@@ -40,7 +40,7 @@ export interface Event {
 
 export type SlideshowTransition = "fade" | "slide" | "zoom";
 
-export type SlideshowCommandType = "pause" | "resume" | "skip" | "stop" | "config";
+export type SlideshowCommandType = "pause" | "resume" | "prev" | "next" | "stop" | "config";
 
 export interface SlideshowConfig {
   intervalSec: number;
@@ -73,6 +73,10 @@ export interface EventBranding {
   accentColor?: string;
   logoUrl?: string | null;
   template?: string;
+  qr?: {
+    colorPreset?: "floral" | "birthday" | "ink" | "blush" | "forest";
+    logoUrl?: string | null;
+  };
 }
 
 export interface Photo {

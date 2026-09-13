@@ -45,6 +45,20 @@ describe("handleApiError", () => {
 
     expect(response.status).toBe(500);
   });
+
+  it("should not expose unknown error details", async () => {
+    const response = handleApiError(new Error("database password leaked"));
+    const body = await response.json();
+
+    expect(body).toEqual({
+      success: false,
+      error: {
+        code: "INTERNAL_ERROR",
+        message: "Terjadi kesalahan",
+      },
+    });
+    expect(JSON.stringify(body)).not.toContain("database password leaked");
+  });
 });
 
 describe("successResponse", () => {
@@ -146,5 +160,12 @@ describe("Errors", () => {
 
     expect(error.code).toBe("UPLOAD_FAILED");
     expect(error.statusCode).toBe(500);
+  });
+
+  it("should create RATE_LIMITED error", () => {
+    const error = Errors.RATE_LIMITED();
+
+    expect(error.code).toBe("RATE_LIMITED");
+    expect(error.statusCode).toBe(429);
   });
 });

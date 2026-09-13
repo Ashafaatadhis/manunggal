@@ -11,8 +11,10 @@ export default function CameraPage() {
   const slug = params.slug as string;
 
   const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
+  const [uploadMessage, setUploadMessage] = useState("");
 
   const handleCapture = (photo: string) => {
+    setUploadMessage("");
     setCapturedPhoto(photo);
   };
 
@@ -26,10 +28,25 @@ export default function CameraPage() {
         photo={capturedPhoto}
         slug={slug}
         onBack={() => setCapturedPhoto(null)}
-        onSuccess={() => router.push(`/g/${slug}/feed`)}
+        onSuccess={() => {
+          setCapturedPhoto(null);
+          setUploadMessage("Foto berhasil dikirim. Silakan ambil foto lagi.");
+        }}
       />
     );
   }
 
-  return <CameraCapture onCapture={handleCapture} onBack={handleBack} />;
+  return (
+    <div className="relative">
+      <CameraCapture onCapture={handleCapture} onBack={handleBack} />
+      {uploadMessage && (
+        <div
+          className="absolute left-4 right-4 top-4 z-10 rounded-xl bg-emerald-600 px-4 py-3 text-center text-sm font-medium text-white shadow-lg"
+          role="status"
+        >
+          {uploadMessage}
+        </div>
+      )}
+    </div>
+  );
 }

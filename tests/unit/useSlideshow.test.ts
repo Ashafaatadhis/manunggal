@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { useSlideshow } from "@/hooks/useSlideshow";
 import type { Photo } from "@/lib/types";
@@ -29,10 +29,35 @@ describe("useSlideshow", () => {
     expect(result.current.photos.length).toBe(3);
   });
 
-  it("advances on skip", () => {
+  it("moves to next photo", () => {
     const { result } = renderHook(() => useSlideshow(photos, config));
-    act(() => result.current.applyCommand({ type: "skip" }));
+    act(() => result.current.applyCommand({ type: "next" }));
     expect(result.current.currentIndex).toBe(1);
+  });
+
+  it("moves to previous photo", () => {
+    const { result } = renderHook(() => useSlideshow(photos, config));
+    act(() => result.current.applyCommand({ type: "next" }));
+    act(() => result.current.applyCommand({ type: "prev" }));
+    expect(result.current.currentIndex).toBe(0);
+  });
+
+  it("resets interval countdown after skip", () => {
+    vi.useFakeTimers();
+    const { result } = renderHook(() => useSlideshow(photos, config));
+
+    act(() => {
+      vi.advanceTimersByTime(4_999);
+      result.current.applyCommand({ type: "next" });
+    });
+    expect(result.current.currentIndex).toBe(1);
+
+    act(() => vi.advanceTimersByTime(1));
+    expect(result.current.currentIndex).toBe(1);
+    act(() => vi.advanceTimersByTime(4_999));
+    expect(result.current.currentIndex).toBe(2);
+
+    vi.useRealTimers();
   });
 
   it("prepends new photo without changing the displayed photo id", () => {

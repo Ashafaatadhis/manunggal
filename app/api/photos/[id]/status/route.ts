@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { db } from "@/lib/db";
-import { publishModeration } from "@/lib/redis";
+import { publishModeration, publishPhoto } from "@/lib/redis";
 import { requireAuth } from "@/lib/auth";
 import { successResponse, handleApiError, Errors } from "@/lib/errors";
 import { photoLogger } from "@/lib/logger";
@@ -27,6 +27,14 @@ export async function PATCH(
       return handleApiError(Errors.PHOTO_NOT_FOUND());
     }
 
+    const ownedEvent = await db.orm.public.Event.where((event) =>
+      event.id.eq(photo.eventId)
+    ).where((event) => event.hostId.eq(session.userId)).select("id").first();
+
+    if (!ownedEvent) {
+      return handleApiError(Errors.FORBIDDEN());
+    }
+
     const body = await req.json();
     const data = moderationSchema.parse(body);
 
@@ -39,7 +47,11 @@ export async function PATCH(
       { photoId: photo.id, status: data.status, userId: session.userId },
       "Photo moderation action"
     );
-    await publishModeration(photo.eventId, photo.id, data.status);
+    if (data.status === "approved") {
+      await publishPhoto(photo.eventId, updatedPhoto);
+    } else {
+      await publishModeration(photo.eventId, photo.id, data.status);
+    }
 
     return successResponse(updatedPhoto);
   } catch (error) {

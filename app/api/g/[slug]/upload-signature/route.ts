@@ -22,6 +22,10 @@ export async function GET(
       return handleApiError(Errors.EVENT_ENDED());
     }
 
+    if (event.status === "draft") {
+      return handleApiError(Errors.EVENT_NOT_ACTIVE());
+    }
+
     const signature = generateUploadSignature(event.id);
     uploadLogger.info({ eventId: event.id }, "Upload signature generated");
 

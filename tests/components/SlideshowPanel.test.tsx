@@ -21,7 +21,7 @@ describe("SlideshowPanel", () => {
 
   it("renders link to open slideshow screen", () => {
     renderWithQuery(<SlideshowPanel eventId="e1" slug="my-event" />);
-    expect(screen.getByText("Buka Layar Slideshow")).toBeInTheDocument();
+    expect(screen.getByText("Buka layar venue")).toBeInTheDocument();
   });
 
   it("sends pause command", async () => {
@@ -37,6 +37,29 @@ describe("SlideshowPanel", () => {
           body: expect.stringContaining('"type":"pause"'),
         })
       )
+    );
+  });
+
+  it("toggles pause and resume in one button", async () => {
+    renderWithQuery(<SlideshowPanel eventId="e1" slug="my-event" />);
+    const toggle = screen.getByRole("button", { name: "Jeda slideshow" });
+
+    await act(async () => {
+      fireEvent.click(toggle);
+    });
+    expect(screen.getByRole("button", { name: "Lanjutkan slideshow" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Lanjutkan slideshow" }));
+    });
+    await waitFor(() =>
+      expect(global.fetch).toHaveBeenLastCalledWith(
+        "/api/events/e1/slideshow/control",
+        expect.objectContaining({ body: expect.stringContaining('"type":"resume"') }),
+      ),
     );
   });
 });

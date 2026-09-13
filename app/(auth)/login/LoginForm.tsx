@@ -46,14 +46,14 @@ export default function LoginForm() {
   });
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Masuk</CardTitle>
-        <CardDescription>Masuk ke dashboard acaramu</CardDescription>
+    <Card className="border-0 bg-white shadow-[0_20px_70px_rgba(7,17,31,0.08)] ring-0">
+      <CardHeader className="px-6 pt-7 sm:px-8 sm:pt-8">
+        <CardTitle className="text-2xl tracking-tight">Selamat datang kembali</CardTitle>
+        <CardDescription className="mt-1">Masuk untuk melanjutkan pengelolaan acaramu.</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-6 pb-7 sm:px-8 sm:pb-8">
         <form
-          className="space-y-4"
+           className="flex flex-col gap-4"
           onSubmit={(e) => {
             e.preventDefault();
             setErrorMsg(null);
@@ -61,7 +61,7 @@ export default function LoginForm() {
           }}
         >
           <div>
-            <label className="text-sm text-muted-foreground" htmlFor="email">
+            <label className="mb-1.5 block text-sm font-medium text-foreground" htmlFor="email">
               Email
             </label>
             <Input
@@ -69,12 +69,13 @@ export default function LoginForm() {
               type="email"
               required
               autoComplete="email"
+              placeholder="nama@email.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
           <div>
-            <label className="text-sm text-muted-foreground" htmlFor="password">
+            <label className="mb-1.5 block text-sm font-medium text-foreground" htmlFor="password">
               Password
             </label>
             <Input
@@ -82,20 +83,21 @@ export default function LoginForm() {
               type="password"
               required
               autoComplete="current-password"
+              placeholder="Masukkan password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
-          {errorMsg && <p className="text-sm text-red-600">{errorMsg}</p>}
+          {errorMsg && <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{errorMsg}</p>}
           <Button
             type="submit"
-            className="w-full"
+            className="mt-2 h-11 w-full"
             disabled={loginMutation.isPending}
           >
             {loginMutation.isPending ? <Spinner /> : "Masuk"}
           </Button>
         </form>
-        <p className="mt-4 text-center text-sm text-muted-foreground">
+        <p className="mt-6 text-center text-sm text-muted-foreground">
           Belum punya akun?{" "}
           <Link href="/register" className="text-primary underline">
             Daftar

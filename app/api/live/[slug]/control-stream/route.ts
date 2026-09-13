@@ -8,12 +8,16 @@ export async function GET(
 ) {
   const { slug } = await params;
   const event = await db.orm.public.Event.where((e) => e.slug.eq(slug))
-    .select("id")
+    .select("id", "status")
     .first();
 
-  if (!event) {
-    return new Response("Event not found", { status: 404 });
-  }
+    if (!event) {
+      return new Response("Event not found", { status: 404 });
+    }
+
+    if (event.status === "draft") {
+      return new Response("Event is not active", { status: 403 });
+    }
 
   const channel = slideshowChannel(event.id);
   const encoder = new TextEncoder();

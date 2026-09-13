@@ -3,6 +3,13 @@ import { db } from "@/lib/db";
 import { requireAuth } from "@/lib/auth";
 import { successResponse, handleApiError, Errors } from "@/lib/errors";
 import { eventLogger } from "@/lib/logger";
+import {
+  eventBrandingSchema,
+  eventPatchSchema,
+  eventSettingsSchema,
+  eventStatusSchema,
+} from "@/lib/validations";
+import { canChangeEventStatus } from "@/lib/event-lifecycle";
 
 export async function GET(
   req: NextRequest,
@@ -45,19 +52,72 @@ export async function PATCH(
       return handleApiError(Errors.EVENT_NOT_FOUND());
     }
 
-    const body = await req.json();
+    const body = eventPatchSchema.parse(await req.json());
 
-    const updatedEvent = await db.orm.public.Event.where((e) =>
-      e.id.eq(eventId)
-    ).update(body);
+    if (body && typeof body === "object" && "status" in body) {
+      const data = eventStatusSchema.parse(body);
+      if (!canChangeEventStatus(event.status, data.status)) {
+        return handleApiError(
+          Errors.CONFLICT(`Status event tidak dapat diubah dari ${event.status} ke ${data.status}`),
+        );
+      }
 
-    if (!updatedEvent) {
-      return handleApiError(Errors.EVENT_NOT_FOUND());
+      const updatedEvent = await db.orm.public.Event.where((e) =>
+        e.id.eq(eventId)
+      ).update({ status: data.status });
+
+      if (!updatedEvent) return handleApiError(Errors.EVENT_NOT_FOUND());
+      eventLogger.info({ eventId: updatedEvent.id, status: data.status }, "Event status updated");
+      return successResponse(updatedEvent);
     }
 
-    eventLogger.info({ eventId: updatedEvent.id }, "Event updated");
+    if (body && typeof body === "object" && "branding" in body) {
+      const data = eventBrandingSchema.parse(body);
+      const currentBranding = (event.branding ?? {}) as Record<string, unknown>;
+      const branding = {
+        ...currentBranding,
+        ...data.branding,
+        ...(data.branding.qr
+          ? {
+              qr: {
+                ...((currentBranding.qr ?? {}) as Record<string, unknown>),
+                ...data.branding.qr,
+              },
+            }
+          : {}),
+      };
 
-    return successResponse(updatedEvent);
+      const updatedEvent = await db.orm.public.Event.where((e) =>
+        e.id.eq(eventId)
+      ).update({ branding: branding as never });
+
+      if (!updatedEvent) {
+        return handleApiError(Errors.EVENT_NOT_FOUND());
+      }
+
+      eventLogger.info({ eventId: updatedEvent.id }, "Event branding updated");
+      return successResponse(updatedEvent);
+    }
+
+    if (body && typeof body === "object" && "settings" in body) {
+      const data = eventSettingsSchema.parse(body);
+      const settings = {
+        ...((event.settings ?? {}) as Record<string, unknown>),
+        ...data.settings,
+      };
+      const updatedEvent = await db.orm.public.Event.where((e) =>
+        e.id.eq(eventId)
+      ).update({ settings: settings as never });
+
+      if (!updatedEvent) {
+        return handleApiError(Errors.EVENT_NOT_FOUND());
+      }
+
+      eventLogger.info({ eventId: updatedEvent.id }, "Event settings updated");
+      return successResponse(updatedEvent);
+    }
+
+    return handleApiError(Errors.VALIDATION("Payload event tidak valid"));
   } catch (error) {
     return handleApiError(error, { route: "events/update", eventId });
   }

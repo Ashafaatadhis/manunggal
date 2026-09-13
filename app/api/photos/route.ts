@@ -1,13 +1,17 @@
 import { NextRequest } from "next/server";
 import { db } from "@/lib/db";
 import { requireAuth } from "@/lib/auth";
-import { successResponse, handleApiError } from "@/lib/errors";
+import { successResponse, handleApiError, Errors } from "@/lib/errors";
 
 export async function GET(req: NextRequest) {
   try {
     const session = await requireAuth();
     const { searchParams } = new URL(req.url);
     const status = searchParams.get("status");
+    const allowedStatuses = ["pending", "approved", "hidden", "deleted"] as const;
+    if (status && !allowedStatuses.includes(status as typeof allowedStatuses[number])) {
+      return handleApiError(Errors.VALIDATION("Status foto tidak valid"));
+    }
 
     // Resolve the host's event ids first, then filter photos by membership.
     const hostEvents = await db.orm.public.Event.select("id")

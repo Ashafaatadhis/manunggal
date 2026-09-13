@@ -5,34 +5,51 @@ import Link from "next/link";
 import EventCard from "@/components/dashboard/EventCard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { useState } from "react";
 import type { Event, ApiResponse } from "@/lib/types";
+import { CardListSkeleton, ErrorState } from "@/components/shared/AsyncState";
 
 interface EventWithCount extends Event {
   photos: number;
 }
 
 export default function EventsPage() {
-  const { data: events, isLoading } = useQuery({
+  const [search, setSearch] = useState("");
+  const { data: events, isLoading, error, refetch } = useQuery({
     queryKey: ["events"],
     queryFn: async () => {
       const res = await fetch("/api/events");
       const data: ApiResponse<EventWithCount[]> = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.error?.message || "Gagal memuat event");
       return data.data || [];
     },
   });
 
   const filterByStatus = (status: Event["status"]) => {
-    return events?.filter((e) => e.status === status) || [];
+    return filteredEvents?.filter((e) => e.status === status) || [];
   };
 
+  const filteredEvents = events?.filter((event) =>
+    `${event.title} ${event.venue || ""}`.toLowerCase().includes(search.toLowerCase())
+  );
+
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">Events</h2>
         <Link href="/events/create">
           <Button>+ Create Event</Button>
         </Link>
       </div>
+
+      <Input
+        aria-label="Search events"
+        className="bg-white"
+        placeholder="Search events..."
+        value={search}
+        onChange={(event) => setSearch(event.target.value)}
+      />
 
       {/* Status Tabs */}
       <div className="flex gap-2">
@@ -49,10 +66,12 @@ export default function EventsPage() {
 
       {/* Events Grid */}
       {isLoading ? (
-        <div className="text-center py-8 text-muted-foreground">Loading...</div>
+        <CardListSkeleton count={6} />
+      ) : error ? (
+        <ErrorState message={error.message} onRetry={() => void refetch()} />
       ) : events && events.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {events.map((event) => (
+          {filteredEvents?.map((event) => (
             <EventCard key={event.id} event={event} />
           ))}
         </div>

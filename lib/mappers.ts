@@ -21,6 +21,11 @@ export function toPhoto(row: {
   moderatedAt: Date | null;
 }): Photo {
   const metadata = row.metadata as PhotoMetadata;
+  const uploadedAt = new Date(row.uploadedAt.toString());
+  const moderatedAt = row.moderatedAt
+    ? new Date(row.moderatedAt.toString())
+    : null;
+
   return {
     id: row.id,
     eventId: row.eventId,
@@ -33,7 +38,7 @@ export function toPhoto(row: {
     message: row.message ?? undefined,
     status: row.status,
     metadata: typeof metadata === "object" && metadata !== null ? metadata : {},
-    uploadedAt: row.uploadedAt,
-    moderatedAt: row.moderatedAt,
+    uploadedAt,
+    moderatedAt,
   };
 }
