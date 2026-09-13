@@ -2,7 +2,7 @@
 set -eu
 
 echo "Applying database migrations..."
-npx prisma db migrate --db "$DATABASE_URL"
+./node_modules/.bin/prisma-cli db migrate --db "$DATABASE_URL"
 
 if [ "${SEED_ON_START:-false}" = "true" ]; then
   echo "Seeding database..."
